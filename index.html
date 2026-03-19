@@ -235,51 +235,52 @@
             </div>
         </div>
         
-        <!-- 图表区域 1：资金曲线 -->
+        <!-- 图表区域（Tab 切换） -->
         <div class="chart-section">
-            <h2>📈 资金曲线 & 累计收益</h2>
-            <div class="chart-wrapper" style="height: 450px;">
-                <canvas id="equityCanvas"></canvas>
+            <h2>📊 可视化图表</h2>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showChart('equity')">📈 资金曲线</button>
+                <button class="nav-tab" onclick="showChart('drawdown')">📉 回撤分析</button>
+                <button class="nav-tab" onclick="showChart('monthly')">📅 月度收益</button>
+                <button class="nav-tab" onclick="showChart('distribution')">📊 收益分布</button>
+                <button class="nav-tab" onclick="showChart('volume')">📊 月度交易量</button>
+                <button class="nav-tab" onclick="showChart('sharpe')">📈 滚动夏普</button>
             </div>
-        </div>
-        
-        <!-- 图表区域 2：回撤分析 -->
-        <div class="chart-section">
-            <h2>📉 回撤分析</h2>
-            <div class="chart-wrapper" style="height: 350px;">
-                <canvas id="drawdownCanvas"></canvas>
+            
+            <div id="equity-chart" class="chart-container active">
+                <div class="chart-wrapper" style="height: 450px;">
+                    <canvas id="equityCanvas"></canvas>
+                </div>
             </div>
-        </div>
-        
-        <!-- 图表区域 3：月度收益 -->
-        <div class="chart-section">
-            <h2>📅 月度收益</h2>
-            <div class="chart-wrapper" style="height: 350px;">
-                <canvas id="monthlyCanvas"></canvas>
+            
+            <div id="drawdown-chart" class="chart-container">
+                <div class="chart-wrapper" style="height: 400px;">
+                    <canvas id="drawdownCanvas"></canvas>
+                </div>
             </div>
-        </div>
-        
-        <!-- 图表区域 4：收益分布 -->
-        <div class="chart-section">
-            <h2>📊 收益分布</h2>
-            <div class="chart-wrapper" style="height: 350px;">
-                <canvas id="distributionCanvas"></canvas>
+            
+            <div id="monthly-chart" class="chart-container">
+                <div class="chart-wrapper" style="height: 400px;">
+                    <canvas id="monthlyCanvas"></canvas>
+                </div>
             </div>
-        </div>
-        
-        <!-- 图表区域 5：月度交易量 -->
-        <div class="chart-section">
-            <h2>📊 月度交易量</h2>
-            <div class="chart-wrapper" style="height: 350px;">
-                <canvas id="volumeCanvas"></canvas>
+            
+            <div id="distribution-chart" class="chart-container">
+                <div class="chart-wrapper" style="height: 400px;">
+                    <canvas id="distributionCanvas"></canvas>
+                </div>
             </div>
-        </div>
-        
-        <!-- 图表区域 6：滚动夏普比率 -->
-        <div class="chart-section">
-            <h2>📈 滚动夏普比率（60 日）</h2>
-            <div class="chart-wrapper" style="height: 350px;">
-                <canvas id="sharpeCanvas"></canvas>
+            
+            <div id="volume-chart" class="chart-container">
+                <div class="chart-wrapper" style="height: 400px;">
+                    <canvas id="volumeCanvas"></canvas>
+                </div>
+            </div>
+            
+            <div id="sharpe-chart" class="chart-container">
+                <div class="chart-wrapper" style="height: 400px;">
+                    <canvas id="sharpeCanvas"></canvas>
+                </div>
             </div>
         </div>
         
@@ -444,7 +445,7 @@
         
         // 资金曲线图表
         const equityCtx = document.getElementById('equityCanvas').getContext('2d');
-        new Chart(equityCtx, {
+        const equityChart = new Chart(equityCtx, {
             type: 'line',
             data: {
                 labels: dates,
@@ -494,7 +495,7 @@
         
         // 回撤图表
         const drawdownCtx = document.getElementById('drawdownCanvas').getContext('2d');
-        new Chart(drawdownCtx, {
+        const drawdownChart = new Chart(drawdownCtx, {
             type: 'line',
             data: {
                 labels: dates,
@@ -541,7 +542,7 @@
         
         // 月度收益图表
         const monthlyCtx = document.getElementById('monthlyCanvas').getContext('2d');
-        new Chart(monthlyCtx, {
+        const monthlyChart = new Chart(monthlyCtx, {
             type: 'bar',
             data: {
                 labels: monthlyLabels,
@@ -577,7 +578,7 @@
         
         // 收益分布图表
         const distCtx = document.getElementById('distributionCanvas').getContext('2d');
-        new Chart(distCtx, {
+        const distributionChart = new Chart(distCtx, {
             type: 'bar',
             data: {
                 labels: returnBins,
@@ -614,7 +615,7 @@
         
         // 月度交易量图表
         const volumeCtx = document.getElementById('volumeCanvas').getContext('2d');
-        new Chart(volumeCtx, {
+        const volumeChart = new Chart(volumeCtx, {
             type: 'bar',
             data: {
                 labels: monthlyLabels,
@@ -651,7 +652,7 @@
         
         // 滚动夏普比率图表
         const sharpeCtx = document.getElementById('sharpeCanvas').getContext('2d');
-        new Chart(sharpeCtx, {
+        const sharpeChart = new Chart(sharpeCtx, {
             type: 'line',
             data: {
                 labels: dates,
@@ -688,6 +689,40 @@
             }
         });
         
+        // 切换图表函数
+        function showChart(type) {
+            // 隐藏所有图表
+            document.querySelectorAll('.chart-container').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // 移除所有 tab 激活状态
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // 显示选中的图表
+            document.getElementById(type + '-chart').classList.add('active');
+            
+            // 激活对应的 tab
+            event.target.classList.add('active');
+            
+            // 更新图表尺寸
+            setTimeout(() => {
+                const chartMap = {
+                    'equity': equityCtx.chart,
+                    'drawdown': drawdownCtx.chart,
+                    'monthly': monthlyCtx.chart,
+                    'distribution': distCtx.chart,
+                    'volume': volumeCtx.chart,
+                    'sharpe': sharpeCtx.chart
+                };
+                if (chartMap[type]) {
+                    chartMap[type].resize();
+                }
+            }, 300);
+        }
+        
         // 生成交易记录表格
         const tableBody = document.getElementById('trade-table-body');
         tradeRecords.forEach(trade => {
@@ -714,24 +749,15 @@
             tableBody.appendChild(row);
         });
         
-        // 切换图表
-        function showChart(type) {
-            // 隐藏所有图表
-            document.querySelectorAll('.chart-container').forEach(el => {
-                el.classList.remove('active');
-            });
-            
-            // 移除所有 tab 激活状态
-            document.querySelectorAll('.nav-tab').forEach(el => {
-                el.classList.remove('active');
-            });
-            
-            // 显示选中的图表
-            document.getElementById(type + '-chart').classList.add('active');
-            
-            // 激活对应的 tab
-            event.target.classList.add('active');
-        }
+        // 保存图表实例用于 resize
+        window.charts = {
+            equity: equityChart,
+            drawdown: drawdownChart,
+            monthly: monthlyChart,
+            distribution: distributionChart,
+            volume: volumeChart,
+            sharpe: sharpeChart
+        };
     </script>
 </body>
 </html>

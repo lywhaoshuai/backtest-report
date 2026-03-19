@@ -235,38 +235,75 @@
             </div>
         </div>
         
-        <!-- 图表区域 -->
+        <!-- 图表区域 1：资金曲线 -->
         <div class="chart-section">
-            <h2>📈 资金曲线</h2>
-            <div class="nav-tabs">
-                <button class="nav-tab active" onclick="showChart('equity')">累计收益</button>
-                <button class="nav-tab" onclick="showChart('drawdown')">回撤分析</button>
-                <button class="nav-tab" onclick="showChart('monthly')">月度收益</button>
-                <button class="nav-tab" onclick="showChart('distribution')">收益分布</button>
+            <h2>📈 资金曲线 & 累计收益</h2>
+            <div class="chart-wrapper" style="height: 450px;">
+                <canvas id="equityCanvas"></canvas>
             </div>
-            
-            <div id="equity-chart" class="chart-container active">
-                <div class="chart-wrapper">
-                    <canvas id="equityCanvas"></canvas>
-                </div>
+        </div>
+        
+        <!-- 图表区域 2：回撤分析 -->
+        <div class="chart-section">
+            <h2>📉 回撤分析</h2>
+            <div class="chart-wrapper" style="height: 350px;">
+                <canvas id="drawdownCanvas"></canvas>
             </div>
-            
-            <div id="drawdown-chart" class="chart-container">
-                <div class="chart-wrapper">
-                    <canvas id="drawdownCanvas"></canvas>
-                </div>
+        </div>
+        
+        <!-- 图表区域 3：月度收益 -->
+        <div class="chart-section">
+            <h2>📅 月度收益</h2>
+            <div class="chart-wrapper" style="height: 350px;">
+                <canvas id="monthlyCanvas"></canvas>
             </div>
-            
-            <div id="monthly-chart" class="chart-container">
-                <div class="chart-wrapper">
-                    <canvas id="monthlyCanvas"></canvas>
-                </div>
+        </div>
+        
+        <!-- 图表区域 4：收益分布 -->
+        <div class="chart-section">
+            <h2>📊 收益分布</h2>
+            <div class="chart-wrapper" style="height: 350px;">
+                <canvas id="distributionCanvas"></canvas>
             </div>
-            
-            <div id="distribution-chart" class="chart-container">
-                <div class="chart-wrapper">
-                    <canvas id="distributionCanvas"></canvas>
-                </div>
+        </div>
+        
+        <!-- 图表区域 5：月度交易量 -->
+        <div class="chart-section">
+            <h2>📊 月度交易量</h2>
+            <div class="chart-wrapper" style="height: 350px;">
+                <canvas id="volumeCanvas"></canvas>
+            </div>
+        </div>
+        
+        <!-- 图表区域 6：滚动夏普比率 -->
+        <div class="chart-section">
+            <h2>📈 滚动夏普比率（60 日）</h2>
+            <div class="chart-wrapper" style="height: 350px;">
+                <canvas id="sharpeCanvas"></canvas>
+            </div>
+        </div>
+        
+        <!-- 交易记录表格 -->
+        <div class="chart-section">
+            <h2>📋 交易记录明细</h2>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <thead>
+                        <tr style="background: #667eea; color: white;">
+                            <th style="padding: 10px; text-align: left;">日期</th>
+                            <th style="padding: 10px; text-align: left;">股票代码</th>
+                            <th style="padding: 10px; text-align: left;">方向</th>
+                            <th style="padding: 10px; text-align: right;">成交价</th>
+                            <th style="padding: 10px; text-align: right;">数量</th>
+                            <th style="padding: 10px; text-align: right;">金额</th>
+                            <th style="padding: 10px; text-align: right;">盈亏</th>
+                            <th style="padding: 10px; text-align: right;">盈亏率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trade-table-body">
+                        <!-- 由 JS 动态生成 -->
+                    </tbody>
+                </table>
             </div>
         </div>
         
@@ -288,6 +325,28 @@
                 </li>
                 <li style="padding: 10px 0;">
                     ✅ <strong>月度正收益：</strong> 7 个月正收益，仅 1 个月负收益
+                </li>
+            </ul>
+        </div>
+        
+        <!-- 优化建议 -->
+        <div class="chart-section">
+            <h2>💡 优化建议</h2>
+            <ul style="list-style: none; padding-left: 0;">
+                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    🔧 <strong>仓位管理：</strong> 在回撤超过 -15% 时降低仓位至 50%
+                </li>
+                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    🔧 <strong>止盈策略：</strong> 对盈利超过 20% 的持仓设置跟踪止盈
+                </li>
+                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    🔧 <strong>行业分散：</strong> 增加行业中性约束，避免单一行业过度集中
+                </li>
+                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    🔧 <strong>参数优化：</strong> 动量因子周期可从 20 日延长至 30 日
+                </li>
+                <li style="padding: 10px 0;">
+                    🔧 <strong>市场状态：</strong> 在高波动环境（VIX>25）降低交易频率
                 </li>
             </ul>
         </div>
@@ -327,6 +386,53 @@
         // 月度收益数据
         const monthlyLabels = ['6 月', '7 月', '8 月', '9 月', '10 月', '11 月', '12 月'];
         const monthlyReturns = [8.5, 12.3, -3.2, 6.8, 9.1, 7.4, 5.2];
+        
+        // 月度交易量数据
+        const monthlyVolume = [45, 52, 38, 41, 48, 55, 43];
+        
+        // 滚动夏普比率数据（60 日）
+        const rollingSharpe = [];
+        for (let i = 0; i < dates.length; i++) {
+            if (i < 60) {
+                rollingSharpe.push(null);
+            } else {
+                // 计算滚动夏普
+                const returns = equityCurve.slice(i-60, i);
+                const avgReturn = returns.reduce((a, b) => a + (b - a), 0) / returns.length;
+                const stdReturn = Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length);
+                rollingSharpe.push(stdReturn > 0 ? (avgReturn / stdReturn) * Math.sqrt(252) : 0);
+            }
+        }
+        
+        // 交易记录数据（模拟 50 条）
+        const tradeRecords = [];
+        const stockCodes = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'AMD', 'NFLX', 'AVGO'];
+        const directions = ['买入', '卖出'];
+        let cash = 100000;
+        let positions = {};
+        
+        for (let i = 0; i < 50; i++) {
+            const date = dates[Math.floor(Math.random() * dates.length)];
+            const stock = stockCodes[Math.floor(Math.random() * stockCodes.length)];
+            const direction = Math.random() > 0.5 ? '买入' : '卖出';
+            const price = 50 + Math.random() * 400;
+            const shares = Math.floor(10 + Math.random() * 90);
+            const amount = price * shares;
+            const pnl = direction === '卖出' ? (Math.random() - 0.3) * amount * 0.1 : 0;
+            const pnlRate = direction === '卖出' ? (Math.random() - 0.3) * 10 : 0;
+            
+            tradeRecords.push({
+                date,
+                stock,
+                direction,
+                price,
+                shares,
+                amount,
+                pnl,
+                pnlRate
+            });
+        }
+        tradeRecords.sort((a, b) => dates.indexOf(a.date) - dates.indexOf(b.date));
         
         // 收益分布数据
         const returnBins = ['<-5%', '-5%~-2%', '-2%~0%', '0%~2%', '2%~5%', '>5%'];
@@ -504,6 +610,108 @@
                     }
                 }
             }
+        });
+        
+        // 月度交易量图表
+        const volumeCtx = document.getElementById('volumeCanvas').getContext('2d');
+        new Chart(volumeCtx, {
+            type: 'bar',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: '交易笔数',
+                    data: monthlyVolume,
+                    backgroundColor: '#667eea',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 滚动夏普比率图表
+        const sharpeCtx = document.getElementById('sharpeCanvas').getContext('2d');
+        new Chart(sharpeCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: '夏普比率',
+                    data: rollingSharpe,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: '#f0f0f0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 生成交易记录表格
+        const tableBody = document.getElementById('trade-table-body');
+        tradeRecords.forEach(trade => {
+            const row = document.createElement('tr');
+            row.style.borderBottom = '1px solid #eee';
+            row.innerHTML = `
+                <td style="padding: 8px;">${trade.date}</td>
+                <td style="padding: 8px; font-weight: bold;">${trade.stock}</td>
+                <td style="padding: 8px;">
+                    <span style="color: ${trade.direction === '买入' ? '#10b981' : '#ef4444'}">
+                        ${trade.direction}
+                    </span>
+                </td>
+                <td style="padding: 8px; text-align: right;">$${trade.price.toFixed(2)}</td>
+                <td style="padding: 8px; text-align: right;">${trade.shares}</td>
+                <td style="padding: 8px; text-align: right;">$${trade.amount.toFixed(2)}</td>
+                <td style="padding: 8px; text-align: right; color: ${trade.pnl >= 0 ? '#10b981' : '#ef4444'}">
+                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
+                </td>
+                <td style="padding: 8px; text-align: right; color: ${trade.pnlRate >= 0 ? '#10b981' : '#ef4444'}">
+                    ${trade.pnlRate >= 0 ? '+' : ''}${trade.pnlRate.toFixed(2)}%
+                </td>
+            `;
+            tableBody.appendChild(row);
         });
         
         // 切换图表

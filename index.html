@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>质量动量策略 - 回测绩效报告（2025.06-2025.12）</title>
+    <title>技术指标多因子策略 - 回测绩效报告（2025.01-2026.02）</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -95,11 +95,6 @@
             font-size: 24px;
         }
         
-        .chart-wrapper {
-            position: relative;
-            height: 400px;
-        }
-        
         .nav-tabs {
             display: flex;
             gap: 10px;
@@ -136,11 +131,9 @@
             display: block;
         }
         
-        .rating {
-            display: inline-block;
-            color: #fbbf24;
-            font-size: 24px;
-            margin-top: 10px;
+        .chart-wrapper {
+            position: relative;
+            height: 450px;
         }
         
         .tag {
@@ -160,42 +153,38 @@
             opacity: 0.8;
         }
         
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 24px;
-            }
-            
-            .metrics {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .metric-card .value {
-                font-size: 24px;
-            }
-            
-            .chart-section {
-                padding: 20px;
-            }
-            
-            .chart-wrapper {
-                height: 300px;
-            }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
         }
+        
+        table thead {
+            background: #667eea;
+            color: white;
+        }
+        
+        table th, table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .buy { color: #10b981; }
+        .sell { color: #ef4444; }
+        .positive { color: #10b981; }
+        .negative { color: #ef4444; }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- 头部 -->
         <div class="header">
-            <h1>📊 质量动量策略 - 回测绩效报告</h1>
+            <h1>📊 技术指标多因子策略 - 回测绩效报告</h1>
             <div class="subtitle">
-                <span class="tag">回测区间：2025.06-2025.12</span>
-                <span class="tag">股票数量：10 只</span>
-                <span class="tag">策略类型：质量 + 动量</span>
+                <span class="tag">回测区间：2025.01-2026.02</span>
+                <span class="tag">股票池：181 只</span>
+                <span class="tag">策略类型：技术指标多因子</span>
             </div>
         </div>
         
@@ -203,108 +192,70 @@
         <div class="metrics">
             <div class="metric-card">
                 <h3>总收益率</h3>
-                <div class="value positive">+42.8%</div>
+                <div class="value positive">+28.39%</div>
             </div>
             <div class="metric-card">
                 <h3>年化收益率</h3>
-                <div class="value positive">+85.6%</div>
+                <div class="value positive">+24.06%</div>
             </div>
             <div class="metric-card">
                 <h3>夏普比率</h3>
-                <div class="value positive">2.34</div>
+                <div class="value positive">1.43</div>
             </div>
             <div class="metric-card">
                 <h3>最大回撤</h3>
-                <div class="value negative">-18.3%</div>
+                <div class="value negative">-17.54%</div>
             </div>
             <div class="metric-card">
                 <h3>胜率</h3>
-                <div class="value positive">68.5%</div>
+                <div class="value positive">52.88%</div>
             </div>
             <div class="metric-card">
                 <h3>盈亏比</h3>
-                <div class="value positive">2.1</div>
+                <div class="value positive">2.01</div>
             </div>
             <div class="metric-card">
                 <h3>交易次数</h3>
-                <div class="value neutral">156</div>
+                <div class="value neutral">104</div>
             </div>
             <div class="metric-card">
                 <h3>日均收益</h3>
-                <div class="value positive">+0.34%</div>
+                <div class="value positive">+0.087%</div>
             </div>
         </div>
         
-        <!-- 图表区域（Tab 切换） -->
+        <!-- 图表区域 -->
         <div class="chart-section">
             <h2>📊 可视化图表</h2>
             <div class="nav-tabs">
                 <button class="nav-tab active" onclick="showChart('equity')">📈 资金曲线</button>
                 <button class="nav-tab" onclick="showChart('drawdown')">📉 回撤分析</button>
-                <button class="nav-tab" onclick="showChart('monthly')">📅 月度收益</button>
-                <button class="nav-tab" onclick="showChart('distribution')">📊 收益分布</button>
-                <button class="nav-tab" onclick="showChart('volume')">📊 月度交易量</button>
-                <button class="nav-tab" onclick="showChart('sharpe')">📈 滚动夏普</button>
+                <button class="nav-tab" onclick="showChart('daily')">📅 每日收益</button>
+                <button class="nav-tab" onclick="showChart('monthly')">📊 月度收益</button>
             </div>
             
             <div id="equity-chart" class="chart-container active">
-                <div class="chart-wrapper" style="height: 450px;">
+                <div class="chart-wrapper">
                     <canvas id="equityCanvas"></canvas>
                 </div>
             </div>
             
             <div id="drawdown-chart" class="chart-container">
-                <div class="chart-wrapper" style="height: 400px;">
+                <div class="chart-wrapper">
                     <canvas id="drawdownCanvas"></canvas>
                 </div>
             </div>
             
+            <div id="daily-chart" class="chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="dailyCanvas"></canvas>
+                </div>
+            </div>
+            
             <div id="monthly-chart" class="chart-container">
-                <div class="chart-wrapper" style="height: 400px;">
+                <div class="chart-wrapper">
                     <canvas id="monthlyCanvas"></canvas>
                 </div>
-            </div>
-            
-            <div id="distribution-chart" class="chart-container">
-                <div class="chart-wrapper" style="height: 400px;">
-                    <canvas id="distributionCanvas"></canvas>
-                </div>
-            </div>
-            
-            <div id="volume-chart" class="chart-container">
-                <div class="chart-wrapper" style="height: 400px;">
-                    <canvas id="volumeCanvas"></canvas>
-                </div>
-            </div>
-            
-            <div id="sharpe-chart" class="chart-container">
-                <div class="chart-wrapper" style="height: 400px;">
-                    <canvas id="sharpeCanvas"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 交易记录表格 -->
-        <div class="chart-section">
-            <h2>📋 交易记录明细</h2>
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                    <thead>
-                        <tr style="background: #667eea; color: white;">
-                            <th style="padding: 10px; text-align: left;">日期</th>
-                            <th style="padding: 10px; text-align: left;">股票代码</th>
-                            <th style="padding: 10px; text-align: left;">方向</th>
-                            <th style="padding: 10px; text-align: right;">成交价</th>
-                            <th style="padding: 10px; text-align: right;">数量</th>
-                            <th style="padding: 10px; text-align: right;">金额</th>
-                            <th style="padding: 10px; text-align: right;">盈亏</th>
-                            <th style="padding: 10px; text-align: right;">盈亏率</th>
-                        </tr>
-                    </thead>
-                    <tbody id="trade-table-body">
-                        <!-- 由 JS 动态生成 -->
-                    </tbody>
-                </table>
             </div>
         </div>
         
@@ -313,19 +264,19 @@
             <h2>✨ 策略亮点</h2>
             <ul style="list-style: none; padding-left: 0;">
                 <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    ✅ <strong>稳定超额收益：</strong> 相对沪深 300 超额收益 +28.5%
+                    ✅ <strong>稳健收益：</strong> 年化收益率 +24.06%，超越大盘
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    ✅ <strong>风险控制优秀：</strong> 最大回撤仅 -18.3%，低于基准 -25.6%
+                    ✅ <strong>风险控制优秀：</strong> 夏普比率 1.43，风险调整后收益良好
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    ✅ <strong>高胜率：</strong> 68.5% 胜率，盈亏比 2.1
+                    ✅ <strong>胜率过半：</strong> 52.88% 胜率，盈亏比 2.01
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    ✅ <strong>夏普比率 2.34：</strong> 风险调整后收益优秀
+                    ✅ <strong>最大回撤可控：</strong> 最大回撤 -17.54%，在可接受范围内
                 </li>
                 <li style="padding: 10px 0;">
-                    ✅ <strong>月度正收益：</strong> 7 个月正收益，仅 1 个月负收益
+                    ✅ <strong>交易频率适中：</strong> 总交易 104 次，平均每周约 1.7 次
                 </li>
             </ul>
         </div>
@@ -335,111 +286,308 @@
             <h2>💡 优化建议</h2>
             <ul style="list-style: none; padding-left: 0;">
                 <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    🔧 <strong>仓位管理：</strong> 在回撤超过 -15% 时降低仓位至 50%
+                    🔧 <strong>仓位管理：</strong> 在回撤超过 -10% 时降低仓位至 50%
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    🔧 <strong>止盈策略：</strong> 对盈利超过 20% 的持仓设置跟踪止盈
+                    🔧 <strong>止盈止损：</strong> 设置 15% 止盈线和 8% 止损线
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    🔧 <strong>行业分散：</strong> 增加行业中性约束，避免单一行业过度集中
+                    🔧 <strong>因子优化：</strong> 增加成交量因子权重，提高信号质量
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    🔧 <strong>参数优化：</strong> 动量因子周期可从 20 日延长至 30 日
+                    🔧 <strong>调仓频率：</strong> 可尝试 15 日或 25 日调仓，寻找最优周期
                 </li>
                 <li style="padding: 10px 0;">
-                    🔧 <strong>市场状态：</strong> 在高波动环境（VIX>25）降低交易频率
+                    🔧 <strong>股票池优化：</strong> 剔除流动性差的小盘股，提高成交效率
                 </li>
             </ul>
         </div>
         
+        <!-- 交易记录表格 -->
+        <div class="chart-section">
+            <h2>📋 最近 20 笔交易记录</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>股票代码</th>
+                            <th>方向</th>
+                            <th>成交价</th>
+                            <th>数量</th>
+                            <th>金额</th>
+                            <th>盈亏</th>
+                            <th>盈亏率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td>2026-01-28</td>
+                            <td style="font-weight: bold;">DD</td>
+                            <td class="buy">买入</td>
+                            <td>$44.43</td>
+                            <td>21</td>
+                            <td>$933.07</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-01-28</td>
+                            <td style="font-weight: bold;">NSC</td>
+                            <td class="buy">买入</td>
+                            <td>$288.97</td>
+                            <td>3</td>
+                            <td>$866.91</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-01-28</td>
+                            <td style="font-weight: bold;">ITW</td>
+                            <td class="buy">买入</td>
+                            <td>$258.69</td>
+                            <td>3</td>
+                            <td>$776.07</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-01-28</td>
+                            <td style="font-weight: bold;">ZM</td>
+                            <td class="buy">买入</td>
+                            <td>$94.44</td>
+                            <td>9</td>
+                            <td>$849.96</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-01-28</td>
+                            <td style="font-weight: bold;">O</td>
+                            <td class="buy">买入</td>
+                            <td>$60.67</td>
+                            <td>15</td>
+                            <td>$910.10</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-01-28</td>
+                            <td style="font-weight: bold;">HON</td>
+                            <td class="buy">买入</td>
+                            <td>$219.82</td>
+                            <td>4</td>
+                            <td>$879.27</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">XOM</td>
+                            <td class="sell">卖出</td>
+                            <td>$149.26</td>
+                            <td>7</td>
+                            <td>$1044.82</td>
+                            <td class="positive">+$203.50</td>
+                            <td class="positive">+24.19%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">LIN</td>
+                            <td class="sell">卖出</td>
+                            <td>$504.00</td>
+                            <td>2</td>
+                            <td>$1008.00</td>
+                            <td class="positive">+$151.28</td>
+                            <td class="positive">+17.66%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">GILD</td>
+                            <td class="sell">卖出</td>
+                            <td>$147.64</td>
+                            <td>7</td>
+                            <td>$1033.48</td>
+                            <td class="positive">+$171.22</td>
+                            <td class="positive">+19.86%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">ITW</td>
+                            <td class="sell">卖出</td>
+                            <td>$294.56</td>
+                            <td>3</td>
+                            <td>$883.68</td>
+                            <td class="positive">+$107.61</td>
+                            <td class="positive">+13.87%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">ZM</td>
+                            <td class="sell">卖出</td>
+                            <td>$87.51</td>
+                            <td>9</td>
+                            <td>$787.59</td>
+                            <td class="negative">$-62.37</td>
+                            <td class="negative">-7.34%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">O</td>
+                            <td class="sell">卖出</td>
+                            <td>$66.25</td>
+                            <td>15</td>
+                            <td>$993.75</td>
+                            <td class="positive">+$83.66</td>
+                            <td class="positive">+9.19%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">HON</td>
+                            <td class="sell">卖出</td>
+                            <td>$242.41</td>
+                            <td>4</td>
+                            <td>$969.63</td>
+                            <td class="positive">+$90.35</td>
+                            <td class="positive">+10.28%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">DLTR</td>
+                            <td class="buy">买入</td>
+                            <td>$131.71</td>
+                            <td>8</td>
+                            <td>$1053.68</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">NKE</td>
+                            <td class="buy">买入</td>
+                            <td>$63.67</td>
+                            <td>17</td>
+                            <td>$1082.35</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">ECL</td>
+                            <td class="buy">买入</td>
+                            <td>$308.16</td>
+                            <td>3</td>
+                            <td>$924.48</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">GEHC</td>
+                            <td class="buy">买入</td>
+                            <td>$84.05</td>
+                            <td>12</td>
+                            <td>$1008.60</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">DXCM</td>
+                            <td class="buy">买入</td>
+                            <td>$73.09</td>
+                            <td>14</td>
+                            <td>$1023.26</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">FCX</td>
+                            <td class="buy">买入</td>
+                            <td>$67.88</td>
+                            <td>16</td>
+                            <td>$1086.08</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                        <tr>
+                            <td>2026-02-25</td>
+                            <td style="font-weight: bold;">WELL</td>
+                            <td class="buy">买入</td>
+                            <td>$208.56</td>
+                            <td>5</td>
+                            <td>$1042.80</td>
+                            <td class="positive">+$0.00</td>
+                            <td class="positive">+0.00%</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
         <div class="footer">
-            <p>生成时间：2026-03-20 | 数据来源：量化回测系统</p>
+            <p>生成时间：2026-03-20 01:49 | 数据来源：技术指标多因子回测系统</p>
         </div>
     </div>
     
     <script>
-        // 模拟回测数据
-        const dates = [];
-        const equityCurve = [100];
-        const drawdown = [0];
-        const benchmark = [100];
+        // 准备数据
+        const portfolioData = [{"date": "2025-01-01", "value": 10000.0, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-02", "value": 10000.0, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-03", "value": 9970.517879486084, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-06", "value": 9962.288022994995, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-07", "value": 10014.063457489014, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-08", "value": 9968.76589012146, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-09", "value": 9917.486087799072, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-10", "value": 9917.486087799072, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-13", "value": 9817.588613510132, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-14", "value": 9807.24026298523, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-15", "value": 9817.138290405273, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-16", "value": 9817.638835906982, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-17", "value": 9860.97534942627, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-20", "value": 9906.502975463867, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-21", "value": 9906.502975463867, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-22", "value": 10029.034830093384, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-23", "value": 9944.055862426758, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-24", "value": 9984.344661712646, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-27", "value": 9957.517568588257, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-28", "value": 9949.985706329346, "capital": 845.4981002807617, "positions": 10}, {"date": "2025-01-29", "value": 9907.598447799683, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-01-30", "value": 9898.887166976929, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-01-31", "value": 9989.615915298462, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-03", "value": 9912.652978897095, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-04", "value": 9897.426572799683, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-05", "value": 9943.807989120483, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-06", "value": 9968.986074447632, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-07", "value": 10012.466157913208, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-10", "value": 9953.754598617554, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-11", "value": 9969.790769577026, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-12", "value": 9991.786714553833, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-13", "value": 9995.196660995483, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-14", "value": 10104.24799156189, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-17", "value": 10086.79879951477, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-18", "value": 10086.79879951477, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-19", "value": 10094.663412094116, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-20", "value": 10112.772859573364, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-21", "value": 10112.823118209839, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-24", "value": 9999.748956680298, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-25", "value": 10015.403787612915, "capital": 2111.8559169769287, "positions": 10}, {"date": "2025-02-26", "value": 10024.427373886108, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-02-27", "value": 9973.56163597107, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-02-28", "value": 9939.08344078064, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-03", "value": 10007.085470199585, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-04", "value": 9907.363935470581, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-05", "value": 9821.757856369019, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-06", "value": 9936.855833053589, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-07", "value": 9864.872076034546, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-10", "value": 9940.263990402222, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-11", "value": 9791.509496688843, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-12", "value": 9646.673551559448, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-13", "value": 9556.833894729614, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-14", "value": 9575.57402229309, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-17", "value": 9635.890905380249, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-18", "value": 9746.269578933716, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-19", "value": 9722.391275405884, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-20", "value": 9726.52173423767, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-21", "value": 9668.63450050354, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-24", "value": 9611.46704673767, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-25", "value": 9731.898260116577, "capital": 2609.1648235321045, "positions": 10}, {"date": "2025-03-26", "value": 9637.871507644653, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-03-27", "value": 9559.4544506073, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-03-28", "value": 9505.34559059143, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-03-31", "value": 9383.208978652954, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-01", "value": 9428.920866012573, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-02", "value": 9475.198877334595, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-03", "value": 9488.435876846313, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-04", "value": 9000.396276473999, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-07", "value": 8354.268140792847, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-08", "value": 8391.717573165894, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-09", "value": 8338.745853424072, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-10", "value": 8956.234201431274, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-11", "value": 8693.020095825195, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-14", "value": 8904.037870407104, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-15", "value": 8937.619832992554, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-16", "value": 8947.648698806763, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-17", "value": 8931.07152748108, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-18", "value": 8956.514291763306, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-21", "value": 8956.514291763306, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-22", "value": 8874.474184036255, "capital": 2228.4827556610107, "positions": 9}, {"date": "2025-04-23", "value": 9004.282976150513, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-04-24", "value": 8946.425294876099, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-04-25", "value": 9002.311601638794, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-04-28", "value": 8966.281564712524, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-04-29", "value": 8977.208795547485, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-04-30", "value": 8979.693803787231, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-01", "value": 9001.096101760864, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-02", "value": 8956.401460647583, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-05", "value": 9020.143686294556, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-06", "value": 9057.104890823364, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-07", "value": 9060.909044265747, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-08", "value": 9065.770456314087, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-09", "value": 9039.929605484009, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-12", "value": 9054.307725906372, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-13", "value": 9002.48517036438, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-14", "value": 8918.923830032349, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-15", "value": 8863.31694984436, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-16", "value": 8964.9619846344, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-19", "value": 9020.065309524536, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-20", "value": 9047.401323318481, "capital": 3174.3569507598877, "positions": 9}, {"date": "2025-05-21", "value": 9111.810998916626, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-05-22", "value": 8965.431497573853, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-05-23", "value": 8924.826181411743, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-05-26", "value": 8874.36382484436, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-05-27", "value": 8874.36382484436, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-05-28", "value": 9059.97631263733, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-05-29", "value": 8987.785654067993, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-05-30", "value": 9041.274621963501, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-02", "value": 9027.784685134888, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-03", "value": 9081.064416885376, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-04", "value": 9240.590684890747, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-05", "value": 9206.33622932434, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-06", "value": 9266.976373672485, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-09", "value": 9306.825372695923, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-10", "value": 9379.320505142212, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-11", "value": 9423.551530838013, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-12", "value": 9359.18479347229, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-13", "value": 9349.692598342896, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-16", "value": 9185.931993484497, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-17", "value": 9326.618097305298, "capital": 1438.6751499176025, "positions": 10}, {"date": "2025-06-18", "value": 9245.218370437622, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-06-19", "value": 9237.292444229126, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-06-20", "value": 9237.292444229126, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-06-23", "value": 9242.033044815063, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-06-24", "value": 9235.795850753784, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-06-25", "value": 9210.490571975708, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-06-26", "value": 9186.374002456665, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-06-27", "value": 9278.629968643188, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-06-30", "value": 9287.807050704956, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-01", "value": 9292.034280776978, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-02", "value": 9448.969270706177, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-03", "value": 9489.018335342407, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-04", "value": 9481.331140518188, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-07", "value": 9481.331140518188, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-08", "value": 9426.976243972778, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-09", "value": 9533.407732009888, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-10", "value": 9527.572450637817, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-11", "value": 9606.310270309448, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-14", "value": 9608.761861801147, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-15", "value": 9577.034978866577, "capital": 1973.8828563690186, "positions": 9}, {"date": "2025-07-16", "value": 9449.497304916382, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-17", "value": 9452.597185134888, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-18", "value": 9480.286712646484, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-21", "value": 9504.390127182007, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-22", "value": 9542.842721939087, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-23", "value": 9626.104236602783, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-24", "value": 9717.213258743286, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-25", "value": 9662.259435653687, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-28", "value": 9733.888944625854, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-29", "value": 9716.843088150024, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-30", "value": 9699.175825119019, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-07-31", "value": 9653.082504272461, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-08-01", "value": 9599.045232772827, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-08-04", "value": 9526.478788375854, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-08-05", "value": 9572.127742767334, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-08-06", "value": 9602.346256256104, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-08-07", "value": 9603.702890396118, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-08-08", "value": 9604.463335037231, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-08-11", "value": 9620.413356781006, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-08-12", "value": 9588.524696350098, "capital": 2671.3251457214355, "positions": 10}, {"date": "2025-08-13", "value": 9648.499481201172, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-14", "value": 9654.82207107544, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-15", "value": 9617.37714767456, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-18", "value": 9583.421646118164, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-19", "value": 9604.87260055542, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-20", "value": 9645.415363311768, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-21", "value": 9679.760795593262, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-22", "value": 9609.269554138184, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-25", "value": 9638.185764312744, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-26", "value": 9550.003269195557, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-27", "value": 9588.247299194336, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-28", "value": 9615.495922088623, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-08-29", "value": 9635.853530883789, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-09-01", "value": 9662.842739105225, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-09-02", "value": 9662.842739105225, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-09-03", "value": 9652.599487304688, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-09-04", "value": 9653.577941894531, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-09-05", "value": 9728.920364379883, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-09-08", "value": 9828.19271850586, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-09-09", "value": 9804.172946929932, "capital": 646.4992523193359, "positions": 10}, {"date": "2025-09-10", "value": 9853.266315460205, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-11", "value": 9921.092632293701, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-12", "value": 10071.607231140137, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-15", "value": 10091.95567703247, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-16", "value": 10107.863288879395, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-17", "value": 10123.280197143555, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-18", "value": 10116.97227859497, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-19", "value": 10183.36157989502, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-22", "value": 10164.362274169922, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-23", "value": 10200.149311065674, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-24", "value": 10240.518775939941, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-25", "value": 10082.067764282227, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-26", "value": 10010.283725738525, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-29", "value": 10076.0442237854, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-09-30", "value": 10125.834209442139, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-10-01", "value": 10179.972038269043, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-10-02", "value": 10300.51159286499, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-10-03", "value": 10314.980434417725, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-10-06", "value": 10349.647689819336, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-10-07", "value": 10416.517498016357, "capital": 3173.8242797851562, "positions": 9}, {"date": "2025-10-08", "value": 10343.495834350586, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-09", "value": 10449.849380493164, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-10", "value": 10327.211364746094, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-13", "value": 10171.783996582031, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-14", "value": 10335.832622528076, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-15", "value": 10363.813926696777, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-16", "value": 10463.37100982666, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-17", "value": 10569.04141998291, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-20", "value": 10544.512748718262, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-21", "value": 10668.144348144531, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-22", "value": 10525.056289672852, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-23", "value": 10484.97632598877, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-24", "value": 10556.97127532959, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-27", "value": 10577.080947875977, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-28", "value": 10551.660667419434, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-29", "value": 10526.625267028809, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-30", "value": 10518.224075317383, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-10-31", "value": 10564.171859741211, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-11-03", "value": 10554.580955505371, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-11-04", "value": 10687.671577453613, "capital": 3497.069320678711, "positions": 9}, {"date": "2025-11-05", "value": 10602.717727661133, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-06", "value": 10707.97476196289, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-07", "value": 10641.181747436523, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-10", "value": 10739.647590637207, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-11", "value": 10762.577796936035, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-12", "value": 10864.651496887207, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-13", "value": 10853.909034729004, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-14", "value": 10783.825981140137, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-17", "value": 10803.147193908691, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-18", "value": 10709.999267578125, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-19", "value": 10683.349510192871, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-20", "value": 10647.641227722168, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-21", "value": 10557.478080749512, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-24", "value": 10793.82984161377, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-25", "value": 10783.013122558594, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-26", "value": 10986.063255310059, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-27", "value": 11039.080200195312, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-11-28", "value": 11039.080200195312, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-12-01", "value": 11087.201652526855, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-12-02", "value": 11070.115715026855, "capital": 3654.8183517456055, "positions": 9}, {"date": "2025-12-03", "value": 11076.8550491333, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-04", "value": 11201.789962768555, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-05", "value": 11215.246536254883, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-08", "value": 11254.0991897583, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-09", "value": 11223.273582458496, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-10", "value": 11209.980087280273, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-11", "value": 11380.088722229004, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-12", "value": 11544.827629089355, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-15", "value": 11524.993103027344, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-16", "value": 11499.184867858887, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-17", "value": 11484.902351379395, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-18", "value": 11466.597480773926, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-19", "value": 11445.655776977539, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-22", "value": 11483.68952178955, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-23", "value": 11554.26139831543, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-24", "value": 11497.146621704102, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-25", "value": 11542.882186889648, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-26", "value": 11542.882186889648, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-29", "value": 11591.363670349121, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-30", "value": 11494.932312011719, "capital": 3914.937210083008, "positions": 10}, {"date": "2025-12-31", "value": 11498.581840515137, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-01", "value": 11434.955024719238, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-02", "value": 11434.955024719238, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-05", "value": 11484.404655456543, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-06", "value": 11562.557632446289, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-07", "value": 11674.746704101562, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-08", "value": 11616.937637329102, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-09", "value": 11641.973625183105, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-12", "value": 11752.384147644043, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-13", "value": 11793.047645568848, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-14", "value": 11826.645141601562, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-15", "value": 11884.509948730469, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-16", "value": 11881.546836853027, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-19", "value": 11874.17552947998, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-20", "value": 11874.17552947998, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-21", "value": 11868.742752075195, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-22", "value": 12020.949890136719, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-23", "value": 12056.182319641113, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-26", "value": 12122.495254516602, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-27", "value": 12167.593574523926, "capital": 4622.324638366699, "positions": 9}, {"date": "2026-01-28", "value": 12206.105018615723, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-01-29", "value": 12171.434700012207, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-01-30", "value": 12247.928638458252, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-02", "value": 12261.54577255249, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-03", "value": 12271.424556732178, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-04", "value": 12390.956802368164, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-05", "value": 12617.626960754395, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-06", "value": 12547.2624168396, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-09", "value": 12647.604991912842, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-10", "value": 12702.003326416016, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-11", "value": 12793.201858520508, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-12", "value": 12936.557762145996, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-13", "value": 12829.843643188477, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-16", "value": 12901.503322601318, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-17", "value": 12901.503322601318, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-18", "value": 12882.653163909912, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-19", "value": 12905.67900466919, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-20", "value": 12871.17336654663, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-23", "value": 12889.947025299072, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-24", "value": 12857.269718170166, "capital": 4146.411079406738, "positions": 9}, {"date": "2026-02-25", "value": 12883.815422058105, "capital": 3646.1160163879395, "positions": 9}, {"date": "2026-02-26", "value": 12829.770568847656, "capital": 3646.1160163879395, "positions": 9}, {"date": "2026-02-27", "value": 12838.821502685547, "capital": 3646.1160163879395, "positions": 9}];
+        const dates = portfolioData.map(d => d.date);
+        const values = portfolioData.map(d => d.value);
         
-        // 生成 6 个月的数据（约 126 个交易日）
-        const startDate = new Date('2025-06-01');
-        for (let i = 0; i < 126; i++) {
-            const date = new Date(startDate);
-            date.setDate(date.getDate() + i);
-            dates.push(date.toLocaleDateString('zh-CN', {month: 'short', day: 'numeric'}));
-            
-            // 策略收益（带趋势的随机游走）
-            const dailyReturn = 0.003 + (Math.random() - 0.45) * 0.02;
-            equityCurve.push(equityCurve[equityCurve.length - 1] * (1 + dailyReturn));
-            
-            // 基准收益（沪深 300 模拟）
-            const benchmarkReturn = 0.001 + (Math.random() - 0.5) * 0.025;
-            benchmark.push(benchmark[benchmark.length - 1] * (1 + benchmarkReturn));
-            
-            // 回撤
-            const peak = Math.max(...equityCurve.slice(0, -1));
-            drawdown.push(-(peak - equityCurve[equityCurve.length - 1]) / peak * 100);
-        }
+        // 计算回撤
+        let peak = 0;
+        const drawdowns = values.map(v => {
+            if (v > peak) peak = v;
+            return (v - peak) / peak * 100;
+        });
         
-        // 月度收益数据
-        const monthlyLabels = ['6 月', '7 月', '8 月', '9 月', '10 月', '11 月', '12 月'];
-        const monthlyReturns = [8.5, 12.3, -3.2, 6.8, 9.1, 7.4, 5.2];
+        // 计算每日收益
+        const dailyReturns = values.slice(1).map((v, i) => (v - values[i]) / values[i] * 100);
+        const dailyDates = dates.slice(1);
         
-        // 月度交易量数据
-        const monthlyVolume = [45, 52, 38, 41, 48, 55, 43];
+        // 计算月度收益
+        const monthlyReturns = [];
+        const monthlyLabels = [];
+        let monthStartValue = values[0];
+        let currentMonth = dates[0].substring(0, 7);
         
-        // 滚动夏普比率数据（60 日）
-        const rollingSharpe = [];
-        for (let i = 0; i < dates.length; i++) {
-            if (i < 60) {
-                rollingSharpe.push(null);
-            } else {
-                // 计算滚动夏普
-                const returns = equityCurve.slice(i-60, i);
-                const avgReturn = returns.reduce((a, b) => a + (b - a), 0) / returns.length;
-                const stdReturn = Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length);
-                rollingSharpe.push(stdReturn > 0 ? (avgReturn / stdReturn) * Math.sqrt(252) : 0);
+        for (let i = 1; i < values.length; i++) {
+            const month = dates[i].substring(0, 7);
+            if (month !== currentMonth) {
+                monthlyReturns.push((values[i-1] - monthStartValue) / monthStartValue * 100);
+                monthlyLabels.push(currentMonth);
+                monthStartValue = values[i];
+                currentMonth = month;
             }
         }
+        monthlyReturns.push((values[values.length-1] - monthStartValue) / monthStartValue * 100);
+        monthlyLabels.push(currentMonth);
         
-        // 交易记录数据（模拟 50 条）
-        const tradeRecords = [];
-        const stockCodes = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'AMD', 'NFLX', 'AVGO'];
-        const directions = ['买入', '卖出'];
-        let cash = 100000;
-        let positions = {};
-        
-        for (let i = 0; i < 50; i++) {
-            const date = dates[Math.floor(Math.random() * dates.length)];
-            const stock = stockCodes[Math.floor(Math.random() * stockCodes.length)];
-            const direction = Math.random() > 0.5 ? '买入' : '卖出';
-            const price = 50 + Math.random() * 400;
-            const shares = Math.floor(10 + Math.random() * 90);
-            const amount = price * shares;
-            const pnl = direction === '卖出' ? (Math.random() - 0.3) * amount * 0.1 : 0;
-            const pnlRate = direction === '卖出' ? (Math.random() - 0.3) * 10 : 0;
-            
-            tradeRecords.push({
-                date,
-                stock,
-                direction,
-                price,
-                shares,
-                amount,
-                pnl,
-                pnlRate
-            });
-        }
-        tradeRecords.sort((a, b) => dates.indexOf(a.date) - dates.indexOf(b.date));
-        
-        // 收益分布数据
-        const returnBins = ['<-5%', '-5%~-2%', '-2%~0%', '0%~2%', '2%~5%', '>5%'];
-        const returnFreq = [5, 12, 28, 45, 24, 12];
-        
-        // Chart.js 全局配置
+        // Chart.js 配置
         Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto';
         Chart.defaults.color = '#666';
         
@@ -450,18 +598,11 @@
             data: {
                 labels: dates,
                 datasets: [{
-                    label: '策略净值',
-                    data: equityCurve,
+                    label: '组合价值',
+                    data: values,
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
                     fill: true,
-                    tension: 0.4
-                }, {
-                    label: '沪深 300',
-                    data: benchmark,
-                    borderColor: '#999',
-                    borderDash: [5, 5],
-                    fill: false,
                     tension: 0.4
                 }]
             },
@@ -474,7 +615,12 @@
                     },
                     tooltip: {
                         mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return '组合价值：$' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -501,7 +647,7 @@
                 labels: dates,
                 datasets: [{
                     label: '回撤 %',
-                    data: drawdown,
+                    data: drawdowns,
                     borderColor: '#ef4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.2)',
                     fill: true,
@@ -527,6 +673,42 @@
                     y: {
                         beginAtZero: true,
                         reverse: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 每日收益图表
+        const dailyCtx = document.getElementById('dailyCanvas').getContext('2d');
+        const dailyChart = new Chart(dailyCtx, {
+            type: 'bar',
+            data: {
+                labels: dailyDates,
+                datasets: [{
+                    label: '每日收益 %',
+                    data: dailyReturns,
+                    backgroundColor: dailyReturns.map(r => r >= 0 ? '#10b981' : '#ef4444'),
+                    borderRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
                         grid: {
                             color: '#f0f0f0'
                         }
@@ -576,188 +758,31 @@
             }
         });
         
-        // 收益分布图表
-        const distCtx = document.getElementById('distributionCanvas').getContext('2d');
-        const distributionChart = new Chart(distCtx, {
-            type: 'bar',
-            data: {
-                labels: returnBins,
-                datasets: [{
-                    label: '交易日数量',
-                    data: returnFreq,
-                    backgroundColor: '#764ba2',
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: '#f0f0f0'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-        
-        // 月度交易量图表
-        const volumeCtx = document.getElementById('volumeCanvas').getContext('2d');
-        const volumeChart = new Chart(volumeCtx, {
-            type: 'bar',
-            data: {
-                labels: monthlyLabels,
-                datasets: [{
-                    label: '交易笔数',
-                    data: monthlyVolume,
-                    backgroundColor: '#667eea',
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: '#f0f0f0'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-        
-        // 滚动夏普比率图表
-        const sharpeCtx = document.getElementById('sharpeCanvas').getContext('2d');
-        const sharpeChart = new Chart(sharpeCtx, {
-            type: 'line',
-            data: {
-                labels: dates,
-                datasets: [{
-                    label: '夏普比率',
-                    data: rollingSharpe,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        grid: {
-                            color: '#f0f0f0'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-        
-        // 切换图表函数
+        // 切换图表
         function showChart(type) {
-            // 隐藏所有图表
             document.querySelectorAll('.chart-container').forEach(el => {
                 el.classList.remove('active');
             });
             
-            // 移除所有 tab 激活状态
             document.querySelectorAll('.nav-tab').forEach(el => {
                 el.classList.remove('active');
             });
             
-            // 显示选中的图表
             document.getElementById(type + '-chart').classList.add('active');
-            
-            // 激活对应的 tab
             event.target.classList.add('active');
             
-            // 更新图表尺寸
             setTimeout(() => {
                 const chartMap = {
-                    'equity': equityCtx.chart,
-                    'drawdown': drawdownCtx.chart,
-                    'monthly': monthlyCtx.chart,
-                    'distribution': distCtx.chart,
-                    'volume': volumeCtx.chart,
-                    'sharpe': sharpeCtx.chart
+                    'equity': equityChart,
+                    'drawdown': drawdownChart,
+                    'daily': dailyChart,
+                    'monthly': monthlyChart
                 };
                 if (chartMap[type]) {
                     chartMap[type].resize();
                 }
             }, 300);
         }
-        
-        // 生成交易记录表格
-        const tableBody = document.getElementById('trade-table-body');
-        tradeRecords.forEach(trade => {
-            const row = document.createElement('tr');
-            row.style.borderBottom = '1px solid #eee';
-            row.innerHTML = `
-                <td style="padding: 8px;">${trade.date}</td>
-                <td style="padding: 8px; font-weight: bold;">${trade.stock}</td>
-                <td style="padding: 8px;">
-                    <span style="color: ${trade.direction === '买入' ? '#10b981' : '#ef4444'}">
-                        ${trade.direction}
-                    </span>
-                </td>
-                <td style="padding: 8px; text-align: right;">$${trade.price.toFixed(2)}</td>
-                <td style="padding: 8px; text-align: right;">${trade.shares}</td>
-                <td style="padding: 8px; text-align: right;">$${trade.amount.toFixed(2)}</td>
-                <td style="padding: 8px; text-align: right; color: ${trade.pnl >= 0 ? '#10b981' : '#ef4444'}">
-                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
-                </td>
-                <td style="padding: 8px; text-align: right; color: ${trade.pnlRate >= 0 ? '#10b981' : '#ef4444'}">
-                    ${trade.pnlRate >= 0 ? '+' : ''}${trade.pnlRate.toFixed(2)}%
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
-        
-        // 保存图表实例用于 resize
-        window.charts = {
-            equity: equityChart,
-            drawdown: drawdownChart,
-            monthly: monthlyChart,
-            distribution: distributionChart,
-            volume: volumeChart,
-            sharpe: sharpeChart
-        };
     </script>
 </body>
 </html>

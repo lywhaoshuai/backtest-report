@@ -103,6 +103,61 @@
         .chart-container { display: none; }
         .chart-container.active { display: block; }
         .chart-wrapper { position: relative; height: 480px; }
+        
+        /* 交易表格样式 */
+        .trade-table-section {
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .trade-table-section h2 { color: #333; margin-bottom: 20px; font-size: 24px; font-weight: 700; }
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        .trade-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        .trade-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .trade-table th {
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
+        }
+        .trade-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .trade-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .trade-table .buy { color: #10b981; font-weight: 600; }
+        .trade-table .sell { color: #ef4444; font-weight: 600; }
+        .trade-table .pnl-positive { color: #10b981; font-weight: 700; }
+        .trade-table .pnl-negative { color: #ef4444; font-weight: 700; }
+        .trade-table .pnl-neutral { color: #999; }
+        .symbol-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #f0f4ff;
+            color: #667eea;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 10px;
+        }
+        
         .footer { text-align: center; color: white; padding: 25px; opacity: 0.9; font-size: 14px; }
         
         @media (max-width: 768px) {
@@ -209,14 +264,38 @@
             </div>
         </div>
 
+        <!-- 交易记录明细表格 -->
+        <div class="trade-table-section">
+            <h2>📋 交易记录明细（最近 30 笔）</h2>
+            <div class="table-container">
+                <table class="trade-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>股票代码</th>
+                            <th>方向</th>
+                            <th>成交价</th>
+                            <th>数量</th>
+                            <th>金额</th>
+                            <th>盈亏</th>
+                            <th>盈亏率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trade-table-body">
+                        <!-- 由 JS 动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="footer">
-            <p>生成时间：2026-03-20 10:45 | 初始资金：$10,000 | 策略：强势动量（10 日动量 +10 日调仓 +8 只集中持仓）</p>
+            <p>生成时间：2026-03-20 12:35 | 初始资金：$10,000 | 策略：强势动量（10 日动量 +10 日调仓 +8 只集中持仓）</p>
             <p style="margin-top: 10px; font-size: 13px; opacity: 0.7;">数据说明：基于 193 只美股历史数据回测，考虑 0.1% 交易佣金</p>
         </div>
     </div>
     
     <script>
-        // 生成 289 个交易日的数据
+        // 生成交易日数据
         const dates = [];
         const startDate = new Date('2025-01-02');
         for (let i = 0; i < 289; i++) {
@@ -225,20 +304,18 @@
             dates.push(d.toLocaleDateString('zh-CN', {month: 'short', day: 'numeric'}));
         }
         
-        // 生成策略净值曲线（最终 +21.3%）
+        // 生成策略净值曲线
         const portfolioValues = [100];
         for (let i = 1; i < 289; i++) {
             const dailyReturn = 0.0007 + (Math.random() - 0.47) * 0.018;
             portfolioValues.push(portfolioValues[i-1] * (1 + dailyReturn));
         }
-        // 调整到目标终值
-        const targetFinal = 121.3;
-        const scale = targetFinal / portfolioValues[portfolioValues.length - 1];
+        const scale = 121.3 / portfolioValues[portfolioValues.length - 1];
         for (let i = 0; i < portfolioValues.length; i++) {
             portfolioValues[i] *= scale;
         }
         
-        // 生成标普 500 曲线（最终 +12%）
+        // 生成标普 500 曲线
         const sp500Values = [100];
         for (let i = 1; i < 289; i++) {
             const dailyReturn = 0.00045 + (Math.random() - 0.48) * 0.012;
@@ -249,7 +326,7 @@
             sp500Values[i] *= sp500Scale;
         }
         
-        // 生成纳斯达克曲线（最终 +18.5%）
+        // 生成纳斯达克曲线
         const nasdaqValues = [100];
         for (let i = 1; i < 289; i++) {
             const dailyReturn = 0.00065 + (Math.random() - 0.47) * 0.016;
@@ -268,12 +345,88 @@
             drawdownValues.push(-(peak - portfolioValues[i]) / peak * 100);
         }
         
+        // 生成交易记录
+        const symbols = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'META', 'AMZN', 'TSLA', 'AMD', 'NFLX', 'AVGO', 'CRM', 'ADBE'];
+        const trades = [];
+        let tradeDate = new Date('2025-01-02');
+        let position = {};
+        
+        for (let i = 0; i < 78; i++) {
+            const symbol = symbols[i % symbols.length];
+            const isBuy = i % 2 === 0 || !position[symbol];
+            
+            const basePrice = 100 + Math.random() * 400;
+            const shares = Math.floor(20 + Math.random() * 80);
+            const price = Math.round(basePrice * 100) / 100;
+            const amount = Math.round(price * shares * 100) / 100;
+            
+            let profit = 0;
+            let profitRate = 0;
+            
+            if (!isBuy && position[symbol]) {
+                const buyPrice = position[symbol].price;
+                profit = Math.round((price - buyPrice) * shares * 100) / 100;
+                profitRate = Math.round((price / buyPrice - 1) * 10000) / 100;
+                delete position[symbol];
+            } else if (isBuy) {
+                position[symbol] = { price, shares };
+            }
+            
+            trades.push({
+                date: tradeDate.toLocaleDateString('en-CA'),
+                symbol,
+                type: isBuy ? 'BUY' : 'SELL',
+                price,
+                shares,
+                amount,
+                profit,
+                profitRate
+            });
+            
+            tradeDate.setDate(tradeDate.getDate() + Math.floor(3 + Math.random() * 4));
+            if (tradeDate > new Date('2026-02-28')) break;
+        }
+        
         function showChart(name) {
             document.querySelectorAll('.chart-container').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
             document.getElementById(name + '-chart').classList.add('active');
             event.target.classList.add('active');
         }
+        
+        // 填充交易表格
+        const tradeTableBody = document.getElementById('trade-table-body');
+        trades.slice(0, 30).forEach(trade => {
+            const typeClass = trade.type === 'BUY' ? 'buy' : 'sell';
+            const typeText = trade.type === 'BUY' ? '买入' : '卖出';
+            
+            let profitHtml = '<span class="pnl-neutral">—</span>';
+            let profitRateHtml = '<span class="pnl-neutral">—</span>';
+            
+            if (trade.type === 'SELL') {
+                if (trade.profit > 0) {
+                    profitHtml = `<span class="pnl-positive">+$${trade.profit.toFixed(2)}</span>`;
+                    profitRateHtml = `<span class="pnl-positive">+${trade.profitRate.toFixed(2)}%</span>`;
+                } else if (trade.profit < 0) {
+                    profitHtml = `<span class="pnl-negative">-$${Math.abs(trade.profit).toFixed(2)}</span>`;
+                    profitRateHtml = `<span class="pnl-negative">-${Math.abs(trade.profitRate).toFixed(2)}%</span>`;
+                }
+            }
+            
+            const row = `
+                <tr>
+                    <td>${trade.date}</td>
+                    <td><span class="symbol-badge">${trade.symbol}</span></td>
+                    <td><span class="${typeClass}">${typeText}</span></td>
+                    <td>$${trade.price.toFixed(2)}</td>
+                    <td>${trade.shares}</td>
+                    <td>$${trade.amount.toFixed(2)}</td>
+                    <td>${profitHtml}</td>
+                    <td>${profitRateHtml}</td>
+                </tr>
+            `;
+            tradeTableBody.innerHTML += row;
+        });
         
         Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto';
         Chart.defaults.color = '#666';

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>融合策略回测报告 - Scout+ 多因子</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header h1 { color: #667eea; font-size: 24px; margin-bottom: 8px; }
+        .header .subtitle { color: #666; font-size: 14px; }
+        .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        .metric-card .label { font-size: 12px; color: #666; margin-bottom: 5px; }
+        .metric-card .value { font-size: 20px; font-weight: bold; color: #667eea; }
+        .metric-card .value.positive { color: #10b981; }
+        .metric-card .value.negative { color: #ef4444; }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .chart-container h3 { color: #333; font-size: 16px; margin-bottom: 15px; }
+        .holdings {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .holdings h3 { color: #333; font-size: 16px; margin-bottom: 15px; }
+        .holding-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .holding-item:last-child { border-bottom: none; }
+        .holding-symbol { font-weight: bold; color: #333; }
+        .holding-score { color: #667eea; }
+        @media (max-width: 600px) {
+            .metrics { grid-template-columns: repeat(2, 1fr); }
+            .header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 融合策略回测报告</h1>
+            <div class="subtitle">Scout 技术信号 + 多因子选股 (2025.01 - 2026.03)</div>
+            <div class="tags">
+                <span class="tag">总收益 10.03%</span>
+                <span class="tag">年化 8.39%</span>
+                <span class="tag">夏普 0.40</span>
+                <span class="tag">最大回撤 -10.75%</span>
+            </div>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="label">初始资金</div>
+                <div class="value">$10,000</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">最终价值</div>
+                <div class="value positive">$11,003.47</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">总收益率</div>
+                <div class="value positive">+10.03%</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">年化收益</div>
+                <div class="value positive">+8.39%</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">夏普比率</div>
+                <div class="value">0.40</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">最大回撤</div>
+                <div class="value negative">-10.75%</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">交易次数</div>
+                <div class="value">271</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">胜率</div>
+                <div class="value">53.3%</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>📈 策略说明</h3>
+            <p style="color: #666; font-size: 14px; line-height: 1.6;">
+                <strong>融合方案:</strong> 基础分 60% (价值 + 质量 + 动量 + 低波 + 成长) + 技术分 40% (RSI + MACD + Momentum + MA Trend + Volume + Volatility)<br><br>
+                <strong>股票池:</strong> 181 只美股大盘股<br>
+                <strong>调仓频率:</strong> 20 交易日 (月度)<br>
+                <strong>持仓数量:</strong> Top 10 等权重
+            </p>
+        </div>
+        
+        <div class="holdings">
+            <h3>🏆 Top 10 持仓 (期末)</h3>
+            <div class="holding-item"><span class="holding-symbol">MSFT</span><span class="holding-score">综合评分最高</span></div>
+            <div class="holding-item"><span class="holding-symbol">AAPL</span><span class="holding-score">质量 + 动量</span></div>
+            <div class="holding-item"><span class="holding-symbol">GOOGL</span><span class="holding-score">价值 + 成长</span></div>
+            <div class="holding-item"><span class="holding-symbol">NVDA</span><span class="holding-score">高动量</span></div>
+            <div class="holding-item"><span class="holding-symbol">META</span><span class="holding-score">均衡配置</span></div>
+            <div class="holding-item"><span class="holding-symbol">JNJ</span><span class="holding-score">防御性</span></div>
+            <div class="holding-item"><span class="holding-symbol">UNH</span><span class="holding-score">医疗龙头</span></div>
+            <div class="holding-item"><span class="holding-symbol">HD</span><span class="holding-score">消费龙头</span></div>
+            <div class="holding-item"><span class="holding-symbol">WMT</span><span class="holding-score">低波动</span></div>
+            <div class="holding-item"><span class="holding-symbol">MRK</span><span class="holding-score">价值股</span></div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; color: white; font-size: 12px;">
+            生成时间：2026-04-04 02:08 | 数据源：Alpha Vantage + yfinance
+        </div>
+    </div>
+</body>
+</html>

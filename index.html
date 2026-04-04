@@ -48,8 +48,14 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             margin-bottom: 20px;
+            position: relative;
+            min-height: 400px;
         }
         .chart-container h2 { color: #667eea; margin-bottom: 20px; }
+        .chart-container canvas {
+            max-height: 400px !important;
+            min-height: 300px !important;
+        }
         .section {
             background: white;
             padding: 30px;
@@ -806,8 +812,21 @@
                     }
                 },
                 scales: {
-                    x: { display: true, title: { display: true, text: '日期' } },
-                    y: { display: true, title: { display: true, text: '净值 ($)' } }
+                    x: { 
+                        display: true, 
+                        title: { display: true, text: '日期' },
+                        ticks: { maxRotation: 45, minRotation: 45 }
+                    },
+                    y: { 
+                        display: true, 
+                        title: { display: true, text: '净值 ($)' },
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -844,12 +863,23 @@
                     }
                 },
                 scales: {
-                    x: { display: true, title: { display: true, text: '日期' } },
-                    y: { display: true, title: { display: true, text: '回撤 %' } }
+                    x: { 
+                        display: true, 
+                        title: { display: true, text: '日期' },
+                        ticks: { maxRotation: 45, minRotation: 45 }
+                    },
+                    y: { 
+                        display: true, 
+                        title: { display: true, text: '回撤 %' },
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(1) + '%';
+                            }
+                        }
+                    }
                 }
             }
         });
     </script>
 </body>
 </html>
-<!-- Force redeploy: Sat Apr  4 10:13:07 CST 2026 -->

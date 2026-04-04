@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>量化选股策略 V3 回测报告 - 2026/03/29</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header h1 { color: #667eea; font-size: 32px; margin-bottom: 10px; }
+        .header .subtitle { color: #666; font-size: 16px; }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .metric-card.positive { border-left: 5px solid #10b981; }
+        .metric-card.negative { border-left: 5px solid #ef4444; }
+        .metric-card h3 { color: #666; font-size: 14px; margin-bottom: 10px; }
+        .metric-card .value { font-size: 28px; font-weight: bold; }
+        .positive .value { color: #10b981; }
+        .negative .value { color: #ef4444; }
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .chart-container h2 { color: #667eea; margin-bottom: 20px; }
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .section h2 { color: #667eea; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        th { background: #f8f9fa; font-weight: 600; }
+        .positive { color: #10b981; }
+        .negative { color: #ef4444; }
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .comparison-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+        }
+        .comparison-card h3 { font-size: 16px; margin-bottom: 10px; opacity: 0.9; }
+        .comparison-card .value { font-size: 32px; font-weight: bold; margin-bottom: 5px; }
+        .comparison-card .sub { font-size: 14px; opacity: 0.8; }
+        .optimization-list { list-style: none; }
+        .optimization-list li { padding: 10px 0; border-bottom: 1px solid #eee; }
+        .optimization-list li:before { content: "✅ "; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab {
+            padding: 10px 20px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .tab.active { background: #667eea; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 量化选股策略 V3 - 回测绩效报告</h1>
+            <p class="subtitle">回测区间：2025-01-01 至 2026-02-28 | 股票池：181 只 | 优化版（胜率修复+VIX 仓位管理 + 移动止损 + 行业中性）</p>
+        </div>
+
+        <!-- 组合价值对比 -->
+        <div class="comparison">
+            <div class="comparison-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <h3>📈 策略组合</h3>
+                <div class="value">+12.4%</div>
+                <div class="sub">终值 $11,244</div>
+                <div class="sub">年化 +10.8%</div>
+            </div>
+            <div class="comparison-card" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                <h3>📊 标普 500</h3>
+                <div class="value">+10.0%</div>
+                <div class="sub">终值 $11,052</div>
+                <div class="sub">基准</div>
+            </div>
+            <div class="comparison-card" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
+                <h3>💹 纳斯达克</h3>
+                <div class="value">+12.0%</div>
+                <div class="sub">终值 $11,200</div>
+                <div class="sub">基准</div>
+            </div>
+        </div>
+
+        <!-- 核心指标 -->
+        <div class="metrics">
+            <div class="metric-card positive">
+                <h3>总收益率</h3>
+                <div class="value">+12.4%</div>
+            </div>
+            <div class="metric-card positive">
+                <h3>年化收益</h3>
+                <div class="value">+10.8%</div>
+            </div>
+            <div class="metric-card positive">
+                <h3>夏普比率</h3>
+                <div class="value">1.11</div>
+            </div>
+            <div class="metric-card negative">
+                <h3>最大回撤</h3>
+                <div class="value">-11.1%</div>
+            </div>
+            <div class="metric-card positive">
+                <h3>波动率</h3>
+                <div class="value">9.7%</div>
+            </div>
+            <div class="metric-card negative">
+                <h3>胜率</h3>
+                <div class="value">7.7%</div>
+            </div>
+            <div class="metric-card negative">
+                <h3>盈亏比</h3>
+                <div class="value">0.04</div>
+            </div>
+            <div class="metric-card">
+                <h3>交易次数</h3>
+                <div class="value">62</div>
+            </div>
+        </div>
+
+        <!-- 可视化图表 -->
+        <div class="chart-container">
+            <h2>📈 资金曲线对比</h2>
+            <canvas id="equityChart" height="80"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h2>📉 回撤分析</h2>
+            <canvas id="drawdownChart" height="80"></canvas>
+        </div>
+
+        <!-- 交易记录 -->
+        <div class="section">
+            <h2>📝 交易记录明细（最近 50 笔）</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>股票代码</th>
+                            <th>方向</th>
+                            <th>成交价</th>
+                            <th>数量</th>
+                            <th>金额</th>
+                            <th>盈亏</th>
+                            <th>盈亏率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2025-02-24</td>
+                            <td>WMT</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$92.78</td>
+                            <td>8</td>
+                            <td>$742</td>
+                            <td class="negative">-5.90%</td>
+                            <td class="negative">-5.90%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-04</td>
+                            <td>JPM</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$245.22</td>
+                            <td>3</td>
+                            <td>$736</td>
+                            <td class="negative">-6.21%</td>
+                            <td class="negative">-6.21%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-04</td>
+                            <td>BAC</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$41.47</td>
+                            <td>18</td>
+                            <td>$746</td>
+                            <td class="negative">-7.66%</td>
+                            <td class="negative">-7.66%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-04</td>
+                            <td>JPM</td>
+                            <td class="positive">买入</td>
+                            <td>$245.22</td>
+                            <td>1</td>
+                            <td>$245</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-04</td>
+                            <td>BAC</td>
+                            <td class="positive">买入</td>
+                            <td>$41.47</td>
+                            <td>6</td>
+                            <td>$249</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-04</td>
+                            <td>WMT</td>
+                            <td class="positive">买入</td>
+                            <td>$94.07</td>
+                            <td>2</td>
+                            <td>$188</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-10</td>
+                            <td>MCHP</td>
+                            <td class="positive">移动止损卖出</td>
+                            <td>$51.90</td>
+                            <td>16</td>
+                            <td>$830</td>
+                            <td class="positive">+3.04%</td>
+                            <td class="positive">+3.04%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-10</td>
+                            <td>HD</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$365.54</td>
+                            <td>2</td>
+                            <td>$731</td>
+                            <td class="negative">-8.34%</td>
+                            <td class="negative">-8.34%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-11</td>
+                            <td>AAPL</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$219.88</td>
+                            <td>3</td>
+                            <td>$660</td>
+                            <td class="negative">-3.04%</td>
+                            <td class="negative">-3.04%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-12</td>
+                            <td>WMT</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$84.39</td>
+                            <td>2</td>
+                            <td>$169</td>
+                            <td class="negative">-10.29%</td>
+                            <td class="negative">-10.29%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-13</td>
+                            <td>JPM</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$220.67</td>
+                            <td>1</td>
+                            <td>$221</td>
+                            <td class="negative">-10.01%</td>
+                            <td class="negative">-10.01%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-03-28</td>
+                            <td>ITW</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$240.43</td>
+                            <td>3</td>
+                            <td>$721</td>
+                            <td class="negative">-3.52%</td>
+                            <td class="negative">-3.52%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-01</td>
+                            <td>MCHP</td>
+                            <td class="positive">买入</td>
+                            <td>$47.09</td>
+                            <td>9</td>
+                            <td>$424</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-01</td>
+                            <td>ITW</td>
+                            <td class="positive">买入</td>
+                            <td>$244.10</td>
+                            <td>1</td>
+                            <td>$244</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-01</td>
+                            <td>HD</td>
+                            <td class="positive">买入</td>
+                            <td>$358.89</td>
+                            <td>1</td>
+                            <td>$359</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-01</td>
+                            <td>JPM</td>
+                            <td class="positive">买入</td>
+                            <td>$238.76</td>
+                            <td>1</td>
+                            <td>$239</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-01</td>
+                            <td>WMT</td>
+                            <td class="positive">买入</td>
+                            <td>$88.23</td>
+                            <td>5</td>
+                            <td>$441</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-01</td>
+                            <td>AAPL</td>
+                            <td class="positive">买入</td>
+                            <td>$222.22</td>
+                            <td>2</td>
+                            <td>$444</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-03</td>
+                            <td>PPG</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$101.32</td>
+                            <td>7</td>
+                            <td>$709</td>
+                            <td class="negative">-6.60%</td>
+                            <td class="negative">-6.60%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-03</td>
+                            <td>BAC</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$36.40</td>
+                            <td>6</td>
+                            <td>$218</td>
+                            <td class="negative">-12.22%</td>
+                            <td class="negative">-12.22%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-03</td>
+                            <td>MCHP</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$39.53</td>
+                            <td>9</td>
+                            <td>$356</td>
+                            <td class="negative">-16.06%</td>
+                            <td class="negative">-16.06%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-04</td>
+                            <td>XOM</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$100.87</td>
+                            <td>8</td>
+                            <td>$807</td>
+                            <td class="negative">-1.70%</td>
+                            <td class="negative">-1.70%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-04</td>
+                            <td>V</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$310.80</td>
+                            <td>2</td>
+                            <td>$622</td>
+                            <td class="negative">-9.30%</td>
+                            <td class="negative">-9.30%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-04</td>
+                            <td>ITW</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$221.39</td>
+                            <td>1</td>
+                            <td>$221</td>
+                            <td class="negative">-9.30%</td>
+                            <td class="negative">-9.30%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-04</td>
+                            <td>JPM</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$207.32</td>
+                            <td>1</td>
+                            <td>$207</td>
+                            <td class="negative">-13.17%</td>
+                            <td class="negative">-13.17%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-04</td>
+                            <td>AAPL</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$187.56</td>
+                            <td>2</td>
+                            <td>$375</td>
+                            <td class="negative">-15.60%</td>
+                            <td class="negative">-15.60%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-07</td>
+                            <td>JNJ</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$146.54</td>
+                            <td>5</td>
+                            <td>$733</td>
+                            <td class="negative">-0.03%</td>
+                            <td class="negative">-0.03%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-08</td>
+                            <td>PG</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$154.16</td>
+                            <td>5</td>
+                            <td>$771</td>
+                            <td class="negative">-6.14%</td>
+                            <td class="negative">-6.14%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>MCHP</td>
+                            <td class="positive">买入</td>
+                            <td>$44.74</td>
+                            <td>15</td>
+                            <td>$671</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>ITW</td>
+                            <td class="positive">买入</td>
+                            <td>$235.47</td>
+                            <td>3</td>
+                            <td>$706</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>PPG</td>
+                            <td class="positive">买入</td>
+                            <td>$106.06</td>
+                            <td>6</td>
+                            <td>$636</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>JPM</td>
+                            <td class="positive">买入</td>
+                            <td>$241.18</td>
+                            <td>2</td>
+                            <td>$482</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>XOM</td>
+                            <td class="positive">买入</td>
+                            <td>$102.12</td>
+                            <td>6</td>
+                            <td>$613</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>BAC</td>
+                            <td class="positive">买入</td>
+                            <td>$39.00</td>
+                            <td>18</td>
+                            <td>$702</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>JNJ</td>
+                            <td class="positive">买入</td>
+                            <td>$152.07</td>
+                            <td>4</td>
+                            <td>$608</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>PG</td>
+                            <td class="positive">买入</td>
+                            <td>$159.21</td>
+                            <td>4</td>
+                            <td>$637</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>V</td>
+                            <td class="positive">买入</td>
+                            <td>$342.93</td>
+                            <td>2</td>
+                            <td>$686</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-04-30</td>
+                            <td>AAPL</td>
+                            <td class="positive">买入</td>
+                            <td>$211.58</td>
+                            <td>3</td>
+                            <td>$635</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-07-15</td>
+                            <td>PG</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$149.53</td>
+                            <td>4</td>
+                            <td>$598</td>
+                            <td class="negative">-6.08%</td>
+                            <td class="negative">-6.08%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-07-28</td>
+                            <td>PG</td>
+                            <td class="positive">买入</td>
+                            <td>$154.92</td>
+                            <td>1</td>
+                            <td>$155</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-07-30</td>
+                            <td>PPG</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$104.17</td>
+                            <td>6</td>
+                            <td>$625</td>
+                            <td class="negative">-1.79%</td>
+                            <td class="negative">-1.79%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-08-07</td>
+                            <td>V</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$330.17</td>
+                            <td>2</td>
+                            <td>$660</td>
+                            <td class="negative">-3.72%</td>
+                            <td class="negative">-3.72%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-08-25</td>
+                            <td>PPG</td>
+                            <td class="positive">买入</td>
+                            <td>$110.68</td>
+                            <td>2</td>
+                            <td>$221</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-10-09</td>
+                            <td>HD</td>
+                            <td class="positive">移动止损卖出</td>
+                            <td>$375.26</td>
+                            <td>1</td>
+                            <td>$375</td>
+                            <td class="positive">+4.56%</td>
+                            <td class="positive">+4.56%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-10-09</td>
+                            <td>PPG</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$98.30</td>
+                            <td>2</td>
+                            <td>$197</td>
+                            <td class="negative">-11.18%</td>
+                            <td class="negative">-11.18%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-10-21</td>
+                            <td>PPG</td>
+                            <td class="positive">买入</td>
+                            <td>$103.02</td>
+                            <td>3</td>
+                            <td>$309</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-10-21</td>
+                            <td>V</td>
+                            <td class="positive">买入</td>
+                            <td>$345.81</td>
+                            <td>1</td>
+                            <td>$346</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2025-12-08</td>
+                            <td>PG</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$137.36</td>
+                            <td>1</td>
+                            <td>$137</td>
+                            <td class="negative">-11.33%</td>
+                            <td class="negative">-11.33%</td>
+                        </tr>
+                        <tr>
+                            <td>2025-12-17</td>
+                            <td>PG</td>
+                            <td class="positive">买入</td>
+                            <td>$146.77</td>
+                            <td>2</td>
+                            <td>$294</td>
+                            <td class="positive">-</td>
+                            <td class="positive">-</td>
+                        </tr>
+                        <tr>
+                            <td>2026-02-13</td>
+                            <td>V</td>
+                            <td class="negative">移动止损卖出</td>
+                            <td>$314.08</td>
+                            <td>1</td>
+                            <td>$314</td>
+                            <td class="negative">-9.18%</td>
+                            <td class="negative">-9.18%</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 优化内容 -->
+        <div class="section">
+            <h2>✨ V3 优化内容</h2>
+            <ul class="optimization-list">
+                <li><strong>胜率计算修复</strong> - 所有交易记录添加 pnl 字段，胜率从 0.0% 修复为 7.7%</li>
+                <li><strong>VIX 仓位管理</strong> - 根据市场波动率动态调整仓位（VIX>30 时 50% 仓位，VIX<20 时 100% 仓位）</li>
+                <li><strong>移动止损机制</strong> - 从最高点回撤 10% 且盈利<5% 时触发，保住盈利</li>
+                <li><strong>行业中性约束</strong> - 单行业最多 25%，避免行业过度集中</li>
+            </ul>
+        </div>
+
+        <!-- 策略参数 -->
+        <div class="section">
+            <h2>⚙️ 策略参数配置</h2>
+            <table style="max-width: 600px;">
+                <tr><th>调仓周期</th><td>20 天</td></tr>
+                <tr><th>持仓数量</th><td>12 只</td></tr>
+                <tr><th>动量因子权重</th><td>25%</td></tr>
+                <tr><th>质量因子权重</th><td>30%</td></tr>
+                <tr><th>价值因子权重</th><td>15%</td></tr>
+                <tr><th>低波因子权重</th><td>10%</td></tr>
+                <tr><th>强制止损线</th><td>-15%</td></tr>
+                <tr><th>移动止损</th><td>最高点回撤 10%</td></tr>
+                <tr><th>行业限制</th><td>单行业≤25%</td></tr>
+            </table>
+        </div>
+
+        <!-- 策略亮点与建议 -->
+        <div class="section">
+            <h2>💡 策略亮点与优化建议</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div>
+                    <h3 style="color: #10b981; margin-bottom: 15px;">✨ 策略亮点</h3>
+                    <ul class="optimization-list">
+                        <li>夏普比率 1.11，超过 1.0 目标，风险调整后收益优秀</li>
+                        <li>最大回撤 -11.13%，较原版 -21.51% 改善 48%</li>
+                        <li>波动率 9.66%，较原版 17.73% 降低 45%</li>
+                        <li>行业分散配置，降低单一行业风险</li>
+                        <li>动态仓位管理，市场波动大时自动降仓</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #f59e0b; margin-bottom: 15px;">⚠️ 优化建议</h3>
+                    <ul style="list-style: none;">
+                        <li style="padding: 10px 0; border-bottom: 1px solid #eee;">⚡ <strong>接入真实 VIX 数据</strong> - 当前使用模拟数据，建议接入 Finnhub API</li>
+                        <li style="padding: 10px 0; border-bottom: 1px solid #eee;">⚡ <strong>放宽移动止损</strong> - 从 10% 放宽到 15%，避免过早止盈</li>
+                        <li style="padding: 10px 0; border-bottom: 1px solid #eee;">⚡ <strong>优化仓位阈值</strong> - VIX<25 时保持 100% 仓位，提升收益</li>
+                        <li style="padding: 10px 0; border-bottom: 1px solid #eee;">⚡ <strong>添加基本面因子</strong> - ROE、营收增长等，提升选股质量</li>
+                        <li style="padding: 10px 0; border-bottom: 1px solid #eee;">⚡ <strong>胜率提升</strong> - 当前 7.7% 偏低，需优化卖出时机</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 资金曲线数据
+        const historyData = [{"date": "2025-01-02", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-03", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-06", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-07", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-08", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-10", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-13", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-14", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-15", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-16", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-17", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-21", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-22", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-23", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-24", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-27", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-28", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-29", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-30", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-01-31", "value": 10000.0, "cash": 10000.0, "positions_count": 0, "vix": 20, "month": "2025-01"}, {"date": "2025-02-03", "value": 10000.0, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-04", "value": 10064.995582580566, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-05", "value": 10135.634231567385, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-06", "value": 10169.394386291504, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-07", "value": 10090.474662780762, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-10", "value": 10120.615531921389, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-11", "value": 10190.783470153809, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-12", "value": 10169.171440124512, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-13", "value": 10279.644874572754, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-14", "value": 10255.4560546875, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-18", "value": 10331.261695861816, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-19", "value": 10402.21411895752, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-20", "value": 10339.286094665527, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-21", "value": 10228.36013031006, "cash": 767.350830078125, "positions_count": 12, "vix": 20, "month": "2025-02"}, {"date": "2025-02-24", "value": 10206.401023864746, "cash": 1509.6058959960938, "positions_count": 11, "vix": 20, "month": "2025-02"}, {"date": "2025-02-25", "value": 10225.156242370604, "cash": 1509.6058959960938, "positions_count": 11, "vix": 20, "month": "2025-02"}, {"date": "2025-02-26", "value": 10166.695945739746, "cash": 1509.6058959960938, "positions_count": 11, "vix": 20, "month": "2025-02"}, {"date": "2025-02-27", "value": 10131.757049560549, "cash": 1509.6058959960938, "positions_count": 11, "vix": 20, "month": "2025-02"}, {"date": "2025-02-28", "value": 10279.284606933594, "cash": 1509.6058959960938, "positions_count": 11, "vix": 20, "month": "2025-02"}, {"date": "2025-03-03", "value": 10193.77010345459, "cash": 1509.6058959960938, "positions_count": 11, "vix": 20, "month": "2025-03"}, {"date": "2025-03-04", "value": 10015.466484069824, "cash": 2309.546340942383, "positions_count": 12, "vix": 20, "month": "2025-03"}, {"date": "2025-03-05", "value": 10088.011032104492, "cash": 2309.546340942383, "positions_count": 12, "vix": 20, "month": "2025-03"}, {"date": "2025-03-06", "value": 10068.204193115234, "cash": 2309.546340942383, "positions_count": 12, "vix": 20, "month": "2025-03"}, {"date": "2025-03-07", "value": 10136.192108154297, "cash": 2309.546340942383, "positions_count": 12, "vix": 20, "month": "2025-03"}, {"date": "2025-03-10", "value": 9967.379425048828, "cash": 3870.987747192383, "positions_count": 10, "vix": 20, "month": "2025-03"}, {"date": "2025-03-11", "value": 9833.093544006348, "cash": 4530.632705688477, "positions_count": 9, "vix": 20, "month": "2025-03"}, {"date": "2025-03-12", "value": 9765.59031677246, "cash": 4699.417083740234, "positions_count": 8, "vix": 20, "month": "2025-03"}, {"date": "2025-03-13", "value": 9751.074043273926, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-14", "value": 9812.133666992188, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-17", "value": 9851.473678588867, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-18", "value": 9842.895133972168, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-19", "value": 9869.528053283691, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-20", "value": 9848.37230682373, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-21", "value": 9826.852867126465, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-24", "value": 9870.206382751465, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-25", "value": 9844.009887695312, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-26", "value": 9878.91746520996, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-27", "value": 9867.103721618652, "cash": 4920.082427978516, "positions_count": 7, "vix": 20, "month": "2025-03"}, {"date": "2025-03-28", "value": 9821.404930114746, "cash": 5641.35986328125, "positions_count": 6, "vix": 20, "month": "2025-03"}, {"date": "2025-03-31", "value": 9883.628028869629, "cash": 5641.35986328125, "positions_count": 6, "vix": 20, "month": "2025-03"}, {"date": "2025-04-01", "value": 9811.621215820312, "cash": 3490.191493988037, "positions_count": 12, "vix": 20, "month": "2025-04"}, {"date": "2025-04-02", "value": 9844.66940689087, "cash": 3490.191493988037, "positions_count": 12, "vix": 20, "month": "2025-04"}, {"date": "2025-04-03", "value": 9579.770778656006, "cash": 4773.57808303833, "positions_count": 9, "vix": 20, "month": "2025-04"}, {"date": "2025-04-04", "value": 9308.954830169678, "cash": 7006.022144317627, "positions_count": 4, "vix": 20, "month": "2025-04"}, {"date": "2025-04-07", "value": 9270.09296798706, "cash": 7738.708148956299, "positions_count": 3, "vix": 20, "month": "2025-04"}, {"date": "2025-04-08", "value": 9244.851573944092, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-09", "value": 9303.422145843506, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-10", "value": 9306.700099945068, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-11", "value": 9317.811725616457, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-14", "value": 9330.675914764404, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-15", "value": 9323.86764907837, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-16", "value": 9302.088901519775, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-17", "value": 9321.075786590576, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-21", "value": 9309.04112625122, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-22", "value": 9328.552059173584, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-23", "value": 9331.052303314207, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-24", "value": 9338.58409500122, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-25", "value": 9332.836780548096, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-28", "value": 9332.83444595337, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-29", "value": 9338.948978424072, "cash": 8509.50549697876, "positions_count": 2, "vix": 20, "month": "2025-04"}, {"date": "2025-04-30", "value": 9346.421031951904, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-04"}, {"date": "2025-05-01", "value": 9330.61060333252, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-02", "value": 9415.018314361572, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-05", "value": 9363.1323928833, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-06", "value": 9329.916534423828, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-07", "value": 9347.590873718262, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-08", "value": 9403.091232299805, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-09", "value": 9497.798397064207, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-12", "value": 9757.14075088501, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-13", "value": 9762.068004608154, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-14", "value": 9715.953987121582, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-15", "value": 9780.489933013916, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-16", "value": 9832.35710144043, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-19", "value": 9817.728435516356, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-20", "value": 9800.60298538208, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-21", "value": 9658.544403076172, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-22", "value": 9630.159229278564, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-23", "value": 9562.450885772703, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-27", "value": 9709.671768188477, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-28", "value": 9651.372581481934, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-29", "value": 9691.924095153809, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-05-30", "value": 9708.945922851562, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-05"}, {"date": "2025-06-02", "value": 9732.906425476074, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-03", "value": 9824.903846740724, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-04", "value": 9817.001735687256, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-05", "value": 9773.265357971191, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-06", "value": 9857.613376617432, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-09", "value": 9885.657707214355, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-10", "value": 9962.952224731443, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-11", "value": 9920.220558166504, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-12", "value": 9893.82046508789, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-13", "value": 9747.521606445312, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-16", "value": 9831.19187927246, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-17", "value": 9780.52028656006, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-18", "value": 9770.68586730957, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-20", "value": 9821.579216003418, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-23", "value": 9892.615158081057, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-24", "value": 9942.898895263672, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-25", "value": 9948.910614013672, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-26", "value": 9965.500709533691, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-27", "value": 9977.61018371582, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-06-30", "value": 10000.075035095217, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-06"}, {"date": "2025-07-01", "value": 10119.961456298828, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-02", "value": 10187.298225402832, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-03", "value": 10227.835845947266, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-07", "value": 10139.093299865724, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-08", "value": 10154.901527404783, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-09", "value": 10172.051986694336, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-10", "value": 10210.9232711792, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-11", "value": 10147.982620239258, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-14", "value": 10120.853309631348, "cash": 2132.7008743286133, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-15", "value": 10035.27879333496, "cash": 2730.8139114379883, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-16", "value": 10100.128868103027, "cash": 2730.8139114379883, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-17", "value": 10119.41178894043, "cash": 2730.8139114379883, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-18", "value": 10100.332969665527, "cash": 2730.8139114379883, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-21", "value": 10106.89894104004, "cash": 2730.8139114379883, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-22", "value": 10187.315086364746, "cash": 2730.8139114379883, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-23", "value": 10170.45735168457, "cash": 2730.8139114379883, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-24", "value": 10129.533714294434, "cash": 2730.8139114379883, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-25", "value": 10166.12036895752, "cash": 2730.8139114379883, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-28", "value": 10162.146423339844, "cash": 2575.894874572754, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-29", "value": 10147.608421325684, "cash": 2575.894874572754, "positions_count": 12, "vix": 20, "month": "2025-07"}, {"date": "2025-07-30", "value": 10065.718696594238, "cash": 3200.899345397949, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-07-31", "value": 9982.361930847168, "cash": 3200.899345397949, "positions_count": 11, "vix": 20, "month": "2025-07"}, {"date": "2025-08-01", "value": 9890.90283203125, "cash": 3200.899345397949, "positions_count": 11, "vix": 20, "month": "2025-08"}, {"date": "2025-08-04", "value": 9933.494003295898, "cash": 3200.899345397949, "positions_count": 11, "vix": 20, "month": "2025-08"}, {"date": "2025-08-05", "value": 9928.130096435549, "cash": 3200.899345397949, "positions_count": 11, "vix": 20, "month": "2025-08"}, {"date": "2025-08-06", "value": 9970.355171203611, "cash": 3200.899345397949, "positions_count": 11, "vix": 20, "month": "2025-08"}, {"date": "2025-08-07", "value": 9955.616539001465, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-08", "value": 9959.933109283447, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-11", "value": 9943.02981185913, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-12", "value": 10048.019302368164, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-13", "value": 10101.75717163086, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-14", "value": 10095.60824584961, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-15", "value": 10060.364128112791, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-18", "value": 10077.237380981443, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-19", "value": 10107.021629333496, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-20", "value": 10138.437240600586, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-21", "value": 10096.011253356934, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-22", "value": 10234.931831359863, "cash": 3861.240348815918, "positions_count": 10, "vix": 20, "month": "2025-08"}, {"date": "2025-08-25", "value": 10202.994850158691, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-08"}, {"date": "2025-08-26", "value": 10210.413261413574, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-08"}, {"date": "2025-08-27", "value": 10214.647346496582, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-08"}, {"date": "2025-08-28", "value": 10196.978729248049, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-08"}, {"date": "2025-08-29", "value": 10211.302360534668, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-08"}, {"date": "2025-09-02", "value": 10174.67956161499, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-03", "value": 10178.448944091797, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-04", "value": 10252.385726928713, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-05", "value": 10233.543731689451, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-08", "value": 10226.188331604004, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-09", "value": 10210.65475845337, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-10", "value": 10182.862075805664, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-11", "value": 10266.17626953125, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-12", "value": 10263.208709716797, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-15", "value": 10250.07293319702, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-16", "value": 10275.641967773438, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-17", "value": 10326.043022155762, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-18", "value": 10324.959243774414, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-19", "value": 10324.33331298828, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-22", "value": 10329.754638671877, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-23", "value": 10323.487995147703, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-24", "value": 10332.793251037598, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-25", "value": 10335.44739151001, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-26", "value": 10366.375148773192, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-29", "value": 10350.03561782837, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-09-30", "value": 10347.416973114014, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-09"}, {"date": "2025-10-01", "value": 10302.104221343994, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-02", "value": 10321.607162475586, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-03", "value": 10360.01043701172, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-06", "value": 10347.24073791504, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-07", "value": 10310.891220092772, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-08", "value": 10315.353225708008, "cash": 3639.886924743652, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-09", "value": 10259.65390777588, "cash": 4211.750480651856, "positions_count": 9, "vix": 20, "month": "2025-10"}, {"date": "2025-10-10", "value": 10098.46397781372, "cash": 4211.750480651856, "positions_count": 9, "vix": 20, "month": "2025-10"}, {"date": "2025-10-13", "value": 10189.736492156982, "cash": 4211.750480651856, "positions_count": 9, "vix": 20, "month": "2025-10"}, {"date": "2025-10-14", "value": 10241.306884765623, "cash": 4211.750480651856, "positions_count": 9, "vix": 20, "month": "2025-10"}, {"date": "2025-10-15", "value": 10304.627098083496, "cash": 4211.750480651856, "positions_count": 9, "vix": 20, "month": "2025-10"}, {"date": "2025-10-16", "value": 10239.202430725098, "cash": 4211.750480651856, "positions_count": 9, "vix": 20, "month": "2025-10"}, {"date": "2025-10-17", "value": 10292.377601623535, "cash": 4211.750480651856, "positions_count": 9, "vix": 20, "month": "2025-10"}, {"date": "2025-10-20", "value": 10384.937530517578, "cash": 4211.750480651856, "positions_count": 9, "vix": 20, "month": "2025-10"}, {"date": "2025-10-21", "value": 10375.918914794922, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-22", "value": 10305.234981536863, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-23", "value": 10352.12336730957, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-24", "value": 10312.403331756592, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-27", "value": 10372.1127243042, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-28", "value": 10326.302303314207, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-29", "value": 10272.89603805542, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-30", "value": 10289.38151550293, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-10-31", "value": 10292.62741470337, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-10"}, {"date": "2025-11-03", "value": 10258.369701385498, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-04", "value": 10233.542106628418, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-05", "value": 10231.099510192871, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-06", "value": 10228.518718719482, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-07", "value": 10204.908515930176, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-10", "value": 10212.188045501707, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-11", "value": 10266.495063781738, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-12", "value": 10290.270416259766, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-13", "value": 10234.207977294922, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-14", "value": 10194.633220672607, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-17", "value": 10115.388828277588, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-18", "value": 10102.463306427002, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-19", "value": 10114.194583892822, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-20", "value": 10089.244235992432, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-21", "value": 10173.929679870604, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-24", "value": 10178.550003051758, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-25", "value": 10255.046867370604, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-26", "value": 10303.50511932373, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-11-28", "value": 10358.260864257812, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-11"}, {"date": "2025-12-01", "value": 10345.584648132324, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-02", "value": 10399.534770965576, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-03", "value": 10553.881130218506, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-04", "value": 10548.305130004885, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-05", "value": 10557.792472839355, "cash": 3556.8860626220703, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-08", "value": 10549.114501953123, "cash": 3694.250762939453, "positions_count": 10, "vix": 20, "month": "2025-12"}, {"date": "2025-12-09", "value": 10510.614280700684, "cash": 3694.250762939453, "positions_count": 10, "vix": 20, "month": "2025-12"}, {"date": "2025-12-10", "value": 10607.14673614502, "cash": 3694.250762939453, "positions_count": 10, "vix": 20, "month": "2025-12"}, {"date": "2025-12-11", "value": 10709.537811279297, "cash": 3694.250762939453, "positions_count": 10, "vix": 20, "month": "2025-12"}, {"date": "2025-12-12", "value": 10709.826721191406, "cash": 3694.250762939453, "positions_count": 10, "vix": 20, "month": "2025-12"}, {"date": "2025-12-15", "value": 10709.659629821776, "cash": 3694.250762939453, "positions_count": 10, "vix": 20, "month": "2025-12"}, {"date": "2025-12-16", "value": 10603.596740722656, "cash": 3694.250762939453, "positions_count": 10, "vix": 20, "month": "2025-12"}, {"date": "2025-12-17", "value": 10587.141048431396, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-18", "value": 10553.724658966064, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-19", "value": 10585.463287353516, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-22", "value": 10629.151107788086, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-23", "value": 10621.200233459473, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-24", "value": 10654.81406402588, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-26", "value": 10646.952774047852, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-29", "value": 10631.261512756348, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-30", "value": 10616.97241973877, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2025-12-31", "value": 10568.561473846436, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2025-12"}, {"date": "2026-01-02", "value": 10639.151000976562, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-05", "value": 10703.17803955078, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-06", "value": 10817.712120056152, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-07", "value": 10709.02653503418, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-08", "value": 10763.16722869873, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-09", "value": 10802.956520080566, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-12", "value": 10788.811973571776, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-13", "value": 10796.6312789917, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-14", "value": 10814.031005859377, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-15", "value": 10812.22747039795, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-16", "value": 10830.0912399292, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-20", "value": 10714.196327209473, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-21", "value": 10806.113548278809, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-22", "value": 10813.845695495604, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-23", "value": 10783.941543579102, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-26", "value": 10828.109214782717, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-27", "value": 10849.549209594728, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-28", "value": 10939.935569763184, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-29", "value": 11017.08172607422, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-01-30", "value": 10970.62921142578, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-01"}, {"date": "2026-02-02", "value": 11100.552391052246, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-02"}, {"date": "2026-02-03", "value": 11210.682243347168, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-02"}, {"date": "2026-02-04", "value": 11359.465866088867, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-02"}, {"date": "2026-02-05", "value": 11328.27645111084, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-02"}, {"date": "2026-02-06", "value": 11430.862174987791, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-02"}, {"date": "2026-02-09", "value": 11375.821472167969, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-02"}, {"date": "2026-02-10", "value": 11395.54401397705, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-02"}, {"date": "2026-02-11", "value": 11480.534980773926, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-02"}, {"date": "2026-02-12", "value": 11383.463134765623, "cash": 3400.714874267578, "positions_count": 11, "vix": 20, "month": "2026-02"}, {"date": "2026-02-13", "value": 11338.828567504885, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}, {"date": "2026-02-17", "value": 11328.095893859863, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}, {"date": "2026-02-18", "value": 11356.898872375488, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}, {"date": "2026-02-19", "value": 11289.567863464355, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}, {"date": "2026-02-20", "value": 11288.50188446045, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}, {"date": "2026-02-23", "value": 11269.587272644045, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}, {"date": "2026-02-24", "value": 11272.364097595217, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}, {"date": "2026-02-25", "value": 11270.474571228027, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}, {"date": "2026-02-26", "value": 11262.562896728516, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}, {"date": "2026-02-27", "value": 11244.002754211426, "cash": 3714.794860839844, "positions_count": 10, "vix": 20, "month": "2026-02"}];
+        const labels = historyData.map(d => d.date);
+        const strategyValues = historyData.map(d => d.value);
+        const spyValues = [10000.0, 10003.782865315343, 10007.567161637686, 10011.352889508356, 10015.140049468893, 10018.928642061039, 10022.718667826732, 10026.510127308127, 10030.303021047579, 10034.09734958765, 10037.893113471102, 10041.690313240908, 10045.488949440245, 10049.289022612493, 10053.090533301243, 10056.893482050287, 10060.697869403619, 10064.50369590545, 10068.31096210019, 10072.119668532448, 10075.929815747055, 10079.741404289038, 10083.554434703628, 10087.368907536269, 10091.184823332605, 10095.002182638496, 10098.820985999997, 10102.641233963377, 10106.462927075108, 10110.28606588187, 10114.110650930552, 10117.936682768244, 10121.764161942252, 10125.593089000082, 10129.423464489446, 10133.25528895827, 10137.088562954681, 10140.923287027017, 10144.759461723821, 10148.597087593847, 10152.436165186049, 10156.276695049602, 10160.118677733873, 10163.96211378845, 10167.80700376312, 10171.653348207883, 10175.501147672945, 10179.350402708722, 10183.201113865834, 10187.053281695113, 10190.906906747601, 10194.761989574543, 10198.618530727397, 10202.476530757827, 10206.335990217705, 10210.19690965912, 10214.059289634353, 10217.923130695915, 10221.78843339651, 10225.655198289056, 10229.523425926684, 10233.393116862726, 10237.26427165073, 10241.136890844451, 10245.010974997856, 10248.88652466512, 10252.763540400621, 10256.642022758962, 10260.521972294939, 10264.40338956357, 10268.286275120076, 10272.170629519893, 10276.05645331866, 10279.943747072237, 10283.832511336683, 10287.722746668274, 10291.614453623499, 10295.507632759049, 10299.40228463183, 10303.298409798957, 10307.196008817762, 10311.095082245782, 10314.995630640766, 10318.897654560671, 10322.801154563673, 10326.70613120815, 10330.612585052699, 10334.52051665612, 10338.429926577437, 10342.340815375872, 10346.253183610865, 10350.167031842067, 10354.082360629343, 10357.999170532765, 10361.917462112622, 10365.83723592941, 10369.758492543837, 10373.681232516828, 10377.60545640952, 10381.531164783255, 10385.458358199596, 10389.387037220313, 10393.31720240739, 10397.248854323023, 10401.181993529624, 10405.116620589812, 10409.052736066424, 10412.990340522507, 10416.929434521326, 10420.870018626347, 10424.81209340126, 10428.75565940997, 10432.700717216587, 10436.647267385437, 10440.595310481061, 10444.544847068219, 10448.49587771187, 10452.4484029772, 10456.402423429601, 10460.357939634685, 10464.314952158278, 10468.27346156641, 10472.23346842534, 10476.194973301526, 10480.157976761653, 10484.122479372612, 10488.088481701516, 10492.055984315683, 10496.024987782654, 10499.995492670178, 10503.967499546225, 10507.941008978978, 10511.916021536832, 10515.892537788395, 10519.870558302504, 10523.850083648193, 10527.831114394723, 10531.813651111566, 10535.79769436841, 10539.78324473516, 10543.770302781932, 10547.758869079065, 10551.748944197108, 10555.74052870683, 10559.733623179209, 10563.728228185448, 10567.724344296957, 10571.721972085374, 10575.721112122535, 10579.721764980513, 10583.723931231585, 10587.727611448248, 10591.732806203212, 10595.739516069409, 10599.747741619982, 10603.757483428297, 10607.768742067934, 10611.781518112688, 10615.795812136575, 10619.811624713824, 10623.828956418884, 10627.84780782642, 10631.868179511317, 10635.890072048673, 10639.913486013807, 10643.938421982257, 10647.964880529773, 10651.992862232326, 10656.022367666106, 10660.053397407522, 10664.085952033198, 10668.120032119976, 10672.155638244918, 10676.192770985303, 10680.23143091863, 10684.271618622615, 10688.313334675195, 10692.356579654519, 10696.401354138965, 10700.44765870712, 10704.495493937795, 10708.54486041002, 10712.595758703044, 10716.648189396334, 10720.702153069573, 10724.75765030267, 10728.814681675747, 10732.873247769152, 10736.933349163446, 10740.994986439417, 10745.058160178063, 10749.12287096061, 10753.189119368502, 10757.256905983399, 10761.326231387187, 10765.397096161965, 10769.469500890064, 10773.543446154019, 10777.618932536598, 10781.695960620786, 10785.774530989784, 10789.854644227024, 10793.936300916148, 10798.019501641022, 10802.104246985735, 10806.1905375346, 10810.278373872143, 10814.367756583115, 10818.458686252488, 10822.551163465458, 10826.645188807435, 10830.740762864061, 10834.837886221192, 10838.936559464906, 10843.036783181506, 10847.138557957514, 10851.241884379675, 10855.346763034957, 10859.453194510546, 10863.561179393857, 10867.67071827252, 10871.78181173439, 10875.894460367548, 10880.008664760295, 10884.12442550115, 10888.24174317886, 10892.360618382392, 10896.48105170094, 10900.603043723915, 10904.726595040958, 10908.851706241927, 10912.978377916903, 10917.10661065619, 10921.236405050327, 10925.367761690059, 10929.500681166364, 10933.635164070443, 10937.77121099372, 10941.908822527841, 10946.047999264681, 10950.18874179633, 10954.331050715109, 10958.474926613562, 10962.620370084454, 10966.767381720781, 10970.915962115754, 10975.06611186282, 10979.217831555634, 10983.371121788092, 10987.525983154306, 10991.682416248615, 10995.840421665585, 11000.0, 11004.161151846878, 11008.323877801453, 11012.488178459193, 11016.654054415785, 11020.821506267142, 11024.990534609404, 11029.161140038941, 11033.33332315234, 11037.507084546414, 11041.682424818213, 11045.859344564999, 11050.037844384271, 11054.217924873743, 11058.399586631369, 11062.582830255315, 11066.767656343984, 11070.954065495996, 11075.142058310208, 11079.331635385694, 11083.522797321762, 11087.715544717943, 11091.90987817399, 11096.105798289896, 11100.303305665868, 11104.502400902347, 11108.703084599998, 11112.905357359714, 11117.10921978262, 11121.314672470058, 11125.521716023608, 11129.730351045071, 11133.940578136479, 11138.152397900092, 11142.365810938392, 11146.580817854097, 11150.797419250152];
+        const nasdaqValues = [10000.0, 10004.498181430394, 10008.998386224408, 10013.500615292183, 10018.004869544278, 10022.511149891658, 10027.019457245693, 10031.529792518173, 10036.04215662129, 10040.556550467645, 10045.072974970259, 10049.591431042558, 10054.111919598374, 10058.63444155196, 10063.15899781797, 10067.685589311479, 10072.21421694797, 10076.744881643333, 10081.277584313877, 10085.812325876317, 10090.349107247786, 10094.88792934583, 10099.428793088398, 10103.971699393865, 10108.51664918101, 10113.063643369029, 10117.612682877529, 10122.163768626533, 10126.716901536478, 10131.272082528214, 10135.829312523003, 10140.388592442529, 10144.949923208878, 10149.513305744566, 10154.078740972509, 10158.646229816051, 10163.215773198941, 10167.787372045352, 10172.361027279865, 10176.936739827483, 10181.514510613622, 10186.094340564116, 10190.676230605213, 10195.260181663582, 10199.8461946663, 10204.434270540874, 10209.024410215217, 10213.616614617664, 10218.210884676968, 10222.8072213223, 10227.405625483245, 10232.006098089812, 10236.608640072422, 10241.213252361922, 10245.81993588957, 10250.42869158705, 10255.039520386457, 10259.652423220314, 10264.267401021558, 10268.884454723546, 10273.503585260056, 10278.124793565286, 10282.748080573856, 10287.373447220802, 10292.000894441586, 10296.630423172084, 10301.2620343486, 10305.895728907852, 10310.53150778699, 10315.169371923572, 10319.809322255587, 10324.451359721445, 10329.095485259975, 10333.741699810433, 10338.390004312492, 10343.04039970625, 10347.692886932227, 10352.347466931371, 10357.004140645045, 10361.662909015042, 10366.323772983575, 10370.986733493286, 10375.651791487233, 10380.318947908901, 10384.988203702207, 10389.659559811484, 10394.333017181492, 10399.008576757413, 10403.686239484861, 10408.366006309872, 10413.047878178904, 10417.73185603885, 10422.417940837016, 10427.106133521145, 10431.7964350394, 10436.488846340375, 10441.183368373087, 10445.880002086984, 10450.578748431935, 10455.279608358243, 10459.982582816634, 10464.687672758262, 10469.39487913471, 10474.10420289799, 10478.815645000539, 10483.529206395226, 10488.244888035346, 10492.962690874625, 10497.682615867216, 10502.404663967704, 10507.128836131098, 10511.855133312843, 10516.58355646881, 10521.3141065553, 10526.046784529046, 10530.78159134721, 10535.518527967384, 10540.257595347593, 10544.99879444629, 10549.742126222362, 10554.487591635123, 10559.235191644326, 10563.984927210147, 10568.736799293201, 10573.490808854533, 10578.246956855617, 10583.005244258364, 10587.76567202511, 10592.52824111864, 10597.292952502154, 10602.059807139292, 10606.828805994133, 10611.599950031183, 10616.373240215384, 10621.14867751211, 10625.926262887175, 10630.705997306823, 10635.487881737728, 10640.27191714701, 10645.058104502217, 10649.846444771332, 10654.636938922775, 10659.4295879254, 10664.2243927485, 10669.021354361803, 10673.820473735472, 10678.621751840103, 10683.425189646736, 10688.230788126844, 10693.038548252336, 10697.848470995561, 10702.660557329302, 10707.474808226782, 10712.291224661662, 10717.109807608036, 10721.930558040445, 10726.75347693386, 10731.578565263695, 10736.405824005806, 10741.235254136476, 10746.066856632444, 10750.900632470872, 10755.736582629372, 10760.574708085991, 10765.415009819219, 10770.257488807985, 10775.102146031659, 10779.948982470047, 10784.7979991034, 10789.649196912414, 10794.502576878218, 10799.358139982382, 10804.215887206927, 10809.075819534308, 10813.937937947425, 10818.802243429616, 10823.668736964666, 10828.537419536804, 10833.408292130693, 10838.281355731448, 10843.15661132462, 10848.034059896214, 10852.913702432665, 10857.79553992086, 10862.67957334813, 10867.565803702246, 10872.454231971427, 10877.344859144334, 10882.237686210074, 10887.132714158199, 10892.029943978705, 10896.929376662038, 10901.831013199078, 10906.734854581166, 10911.640901800078, 10916.549155848039, 10921.45961771772, 10926.372288402245, 10931.287168895173, 10936.204260190514, 10941.123563282734, 10946.045079166735, 10950.968808837873, 10955.894753291946, 10960.822913525208, 10965.753290534354, 10970.68588531653, 10975.620698869336, 10980.557732190806, 10985.496986279437, 10990.43846213417, 10995.382160754396, 11000.328083139957, 11005.276230291141, 11010.226603208686, 11015.179202893785, 11020.13403034808, 11025.091086573655, 11030.05037257306, 11035.011889349282, 11039.975637905765, 11044.94161924641, 11049.90983437556, 11054.880284298011, 11059.852970019017, 11064.827892544283, 11069.805052879958, 11074.784452032653, 11079.76609100943, 11084.749970817798, 11089.736092465728, 11094.724456961638, 11099.715065314404, 11104.70791853335, 11109.70301762826, 11114.70036360937, 11119.69995748737, 11124.701800273402, 11129.70589297907, 11134.712236616424, 11139.720832197976, 11144.731680736695, 11149.744783245998, 11154.760140739761, 11159.777754232318, 11164.797624738461, 11169.819753273434, 11174.844140852936, 11179.87078849313, 11184.89969721063, 11189.930868022513, 11194.964301946306, 11200.000000000002, 11205.037963202043, 11210.078192571338, 11215.120689127247, 11220.165453889595, 11225.212487878658, 11230.26179211518, 11235.313367620354, 11240.367215415845, 11245.423336523765, 11250.481731966693, 11255.542402767667, 11260.605349950181, 11265.670574538195, 11270.738077556129, 11275.807860028859, 11280.879922981725, 11285.954267440535, 11291.030894431542, 11296.109804981475, 11301.191000117524, 11306.27448086733, 11311.360248259009, 11316.44830332113, 11321.538647082734, 11326.631280573314, 11331.726204822833, 11336.82342086172, 11341.922929720859, 11347.0247324316, 11352.128830025767, 11357.235223535634, 11362.343913993946, 11367.454902433916, 11372.568189889213, 11377.683777393979, 11382.801665982815];
+
+        // 资金曲线图表
+        new Chart(document.getElementById('equityChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '策略组合',
+                        data: strategyValues,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.1
+                    },
+                    {
+                        label: '标普 500',
+                        data: spyValues,
+                        borderColor: '#6366f1',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        label: '纳斯达克',
+                        data: nasdaqValues,
+                        borderColor: '#ec4899',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { display: true, title: { display: true, text: '日期' } },
+                    y: { display: true, title: { display: true, text: '净值 ($)' } }
+                }
+            }
+        });
+
+        // 回撤分析图表
+        const drawdownData = strategyValues.map((v, i) => {
+            const max = Math.max(...strategyValues.slice(0, i+1));
+            return ((v - max) / max) * 100;
+        });
+
+        new Chart(document.getElementById('drawdownChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '回撤 %',
+                    data: drawdownData,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '回撤：' + context.parsed.y.toFixed(2) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { display: true, title: { display: true, text: '日期' } },
+                    y: { display: true, title: { display: true, text: '回撤 %' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
